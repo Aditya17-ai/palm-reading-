@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Palmistra AI | Celestial Palm Reading & Chirology Vision Model</title>
+  <meta name="description" content="AI-powered palm reading model utilizing computer vision, multi-scale Frangi crease detection, and authentic chiromancy interpretation.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient Cosmic Background -->
+  <div class="cosmos-bg">
+    <div class="nebula nebula-1"></div>
+    <div class="nebula nebula-2"></div>
+    <div class="nebula nebula-3"></div>
+    <div class="stars-particle-grid"></div>
+  </div>
+
+  <!-- Navigation Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="brand-badge">
+        <span class="celestial-orb"></span>
+        <span class="brand-title">PALMISTRA AI</span>
+      </div>
+      <div class="header-tagline">Vision Chirology & Palm Line Intelligence</div>
+      <div class="header-actions">
+        <a href="#samples-section" class="nav-link">Sample Hands</a>
+        <button id="btn-open-camera" class="btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          Live Camera
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- Hero Intro Section -->
+    <section class="hero-section">
+      <div class="hero-pill">
+        <span class="pill-sparkle">✦</span>
+        <span>Computer Vision + Multi-Scale Ridge Extraction</span>
+      </div>
+      <h1 class="hero-heading">Unveil the Blueprint of Your Palm</h1>
+      <p class="hero-description">
+        Capture or upload a palm photograph. Our computer vision model isolates the palm Region of Interest (ROI), extracts microscopic creases with multi-scale Frangi Hessian filters, maps the 4 major chiromancy lines, and interprets your personal destiny.
+      </p>
+    </section>
+
+    <!-- Interactive Input Hub -->
+    <section class="input-hub" id="input-section">
+      <div class="input-tabs">
+        <button class="tab-btn active" id="tab-upload">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Upload Photo
+        </button>
+        <button class="tab-btn" id="tab-camera">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          Live Camera Guide
+        </button>
+        <button class="tab-btn" id="tab-samples">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 16 12 12 8"></polygon></svg>
+          Preset Archetypes
+        </button>
+      </div>
+
+      <!-- Upload Panel -->
+      <div class="tab-panel active" id="panel-upload">
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" id="file-input" accept="image/*" class="file-hidden-input">
+          <div class="drop-zone-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          </div>
+          <div class="drop-zone-title">Drag & Drop Your Palm Photo Here</div>
+          <div class="drop-zone-subtitle">or click to browse files (JPEG, PNG, WEBP)</div>
+          <div class="drop-zone-hint">
+            <span>Tip: Open fingers, natural lighting, palm flat facing the lens</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Camera Panel -->
+      <div class="tab-panel" id="panel-camera">
+        <div class="camera-viewport-container">
+          <video id="camera-feed" autoplay playsinline muted></video>
+          <!-- Palm Alignment Overlay Guide -->
+          <div class="palm-guide-overlay">
+            <svg class="hand-silhouette-svg" viewBox="0 0 400 500">
+              <path d="M 200 450 C 170 450, 160 380, 160 350 C 130 350, 100 330, 90 270 C 80 210, 110 180, 130 190 C 130 150, 140 100, 165 95 C 185 90, 190 140, 195 160 C 200 130, 205 70, 225 65 C 245 60, 250 120, 250 160 C 260 130, 275 85, 295 90 C 315 95, 310 150, 305 185 C 325 180, 345 190, 345 230 C 345 270, 320 350, 240 350 C 240 380, 230 450, 200 450 Z" 
+                    fill="none" stroke="rgba(245, 166, 35, 0.65)" stroke-width="2" stroke-dasharray="8 6"/>
+              <circle cx="200" cy="270" r="50" fill="none" stroke="rgba(6, 182, 212, 0.5)" stroke-width="1.5" stroke-dasharray="4 4"/>
+              <text x="200" y="275" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="12" font-family="sans-serif">Align Palm Center</text>
+            </svg>
+          </div>
+          <div class="camera-controls">
+            <button id="btn-start-camera" class="btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              Start Camera
+            </button>
+            <button id="btn-capture-photo" class="btn-primary highlight" style="display:none;">
+              <span class="btn-shimmer"></span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+              Capture & Read Palm
+            </button>
+            <button id="btn-stop-camera" class="btn-ghost" style="display:none;">Stop</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preset Archetypes Panel -->
+      <div class="tab-panel" id="panel-samples">
+        <div class="samples-grid" id="samples-section">
+          <!-- Earth Sample Card -->
+          <div class="sample-card" data-sample="earth">
+            <div class="sample-thumbnail">
+              <img src="/samples/sample_earth_palm.png" alt="Earth Palm Archetype" loading="lazy">
+              <span class="element-tag tag-earth">Earth</span>
+            </div>
+            <div class="sample-details">
+              <h4>Earth Hand Archetype</h4>
+              <p>Square palm with deep grounding lines, steady Life trajectory, and pragmatic stability.</p>
+              <button class="btn-sample-select">Analyze Sample ✦</button>
+            </div>
+          </div>
+
+          <!-- Air Sample Card -->
+          <div class="sample-card" data-sample="air">
+            <div class="sample-thumbnail">
+              <img src="/samples/sample_air_palm.png" alt="Air Palm Archetype" loading="lazy">
+              <span class="element-tag tag-air">Air</span>
+            </div>
+            <div class="sample-details">
+              <h4>Air Hand Archetype</h4>
+              <p>Balanced palm with an imaginative sloping Head line, gifted communicator, and sharp mental clarity.</p>
+              <button class="btn-sample-select">Analyze Sample ✦</button>
+            </div>
+          </div>
+
+          <!-- Fire Sample Card -->
+          <div class="sample-card" data-sample="fire">
+            <div class="sample-thumbnail">
+              <img src="/samples/sample_fire_palm.png" alt="Fire Palm Archetype" loading="lazy">
+              <span class="element-tag tag-fire">Fire</span>
+            </div>
+            <div class="sample-details">
+              <h4>Fire Hand Archetype</h4>
+              <p>Dynamic proportion, passionate Mount of Venus vitality, ambitious Fate trajectory, and bold leadership.</p>
+              <button class="btn-sample-select">Analyze Sample ✦</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scanning & Progress Animation Modal -->
+    <div class="scanner-modal" id="scanner-modal" style="display:none;">
+      <div class="scanner-card">
+        <div class="scanner-orb-wrapper">
+          <div class="scanner-orb"></div>
+          <div class="scanner-beam"></div>
+        </div>
+        <h3 class="scanner-title">Scanning Palm Creases...</h3>
+        <p class="scanner-status" id="scanner-status">Applying multi-scale Frangi Hessian ridge filtering...</p>
+        <div class="scanner-progress-bar">
+          <div class="scanner-progress-fill" id="scanner-progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Dashboard Section -->
+    <section class="results-dashboard" id="results-dashboard" style="display:none;">
+      
+      <!-- Top Overview Bar -->
+      <div class="results-header-card">
+        <div class="elemental-archetype-box">
+          <div class="archetype-badge-container">
+            <span class="archetype-icon" id="res-element-icon">🔥</span>
+            <div>
+              <div class="archetype-eyebrow">DOMINANT ELEMENT</div>
+              <h2 class="archetype-title" id="res-archetype-title">Fire Hand Archetype</h2>
+            </div>
+          </div>
+          <p class="archetype-motto" id="res-archetype-motto">"Passionate courage, magnetic leadership, and radiant inspiration."</p>
+          <div class="strengths-chips" id="res-strengths-chips">
+            <!-- Dynamic Chips -->
+          </div>
+        </div>
+
+        <div class="harmony-score-box">
+          <div class="harmony-circle-gauge">
+            <svg viewBox="0 0 100 100" class="circle-svg">
+              <circle class="circle-bg" cx="50" cy="50" r="42"></circle>
+              <circle class="circle-fill" id="gauge-harmony-fill" cx="50" cy="50" r="42"></circle>
+            </svg>
+            <div class="circle-text">
+              <span class="circle-number" id="res-overall-harmony">88</span>
+              <span class="circle-label">HARMONY</span>
+            </div>
+          </div>
+          <div class="harmony-metrics-stack">
+            <div class="mini-metric">
+              <span class="metric-name">Vitality</span>
+              <div class="mini-bar"><div class="mini-fill fill-life" id="bar-vitality"></div></div>
+              <span class="metric-val" id="val-vitality">85</span>
+            </div>
+            <div class="mini-metric">
+              <span class="metric-name">Intellect</span>
+              <div class="mini-bar"><div class="mini-fill fill-head" id="bar-intellect"></div></div>
+              <span class="metric-val" id="val-intellect">90</span>
+            </div>
+            <div class="mini-metric">
+              <span class="metric-name">Emotion</span>
+              <div class="mini-bar"><div class="mini-fill fill-heart" id="bar-emotion"></div></div>
+              <span class="metric-val" id="val-emotion">82</span>
+            </div>
+            <div class="mini-metric">
+              <span class="metric-name">Destiny</span>
+              <div class="mini-bar"><div class="mini-fill fill-fate" id="bar-destiny"></div></div>
+              <span class="metric-val" id="val-destiny">78</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Visualizer & Reading Columns -->
+      <div class="dashboard-grid">
+        
+        <!-- Left: Interactive Vision Studio Canvas -->
+        <div class="studio-card">
+          <div class="studio-header">
+            <div class="studio-title-group">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <span>Vision Extraction Studio</span>
+            </div>
+
+            <!-- View Switcher -->
+            <div class="view-switcher">
+              <button class="view-btn active" data-view="overlay">Overlay</button>
+              <button class="view-btn" data-view="ridge">Ridge Map</button>
+              <button class="view-btn" data-view="blueprint">Blueprint</button>
+              <button class="view-btn" data-view="roi">Palm ROI</button>
+            </div>
+          </div>
+
+          <!-- Canvas Display Container -->
+          <div class="canvas-viewport" id="canvas-viewport">
+            <img id="active-visual-img" src="" alt="Palm Analysis Visualization">
+            
+            <!-- Interactive SVG Overlay Layer for Lines & Hover Tooltips -->
+            <svg id="interactive-svg-overlay" viewBox="0 0 512 512">
+              <g id="svg-mounts-group"></g>
+              <g id="svg-lines-group"></g>
+            </svg>
+
+            <!-- Floating Hover Tooltip -->
+            <div class="canvas-tooltip" id="canvas-tooltip" style="display:none;"></div>
+          </div>
+
+          <!-- Interactive Layer Filter Toggles -->
+          <div class="layer-toggles-bar">
+            <span class="toggles-label">Visible Layers:</span>
+            <label class="toggle-pill pill-heart">
+              <input type="checkbox" id="toggle-heart" checked>
+              <span class="dot"></span> Heart Line
+            </label>
+            <label class="toggle-pill pill-head">
+              <input type="checkbox" id="toggle-head" checked>
+              <span class="dot"></span> Head Line
+            </label>
+            <label class="toggle-pill pill-life">
+              <input type="checkbox" id="toggle-life" checked>
+              <span class="dot"></span> Life Line
+            </label>
+            <label class="toggle-pill pill-fate">
+              <input type="checkbox" id="toggle-fate" checked>
+              <span class="dot"></span> Fate Line
+            </label>
+            <label class="toggle-pill pill-mounts">
+              <input type="checkbox" id="toggle-mounts" checked>
+              <span class="dot"></span> Mounts
+            </label>
+          </div>
+        </div>
+
+        <!-- Right: Chiromancy Reading Column -->
+        <div class="readings-stack">
+
+          <!-- Life Line Card -->
+          <div class="reading-card border-life">
+            <div class="card-head">
+              <div class="card-title-group">
+                <span class="line-indicator dot-life"></span>
+                <h3>Life Line (Vitality & Path)</h3>
+              </div>
+              <div class="clarity-chip" id="life-clarity">Deep & Clear</div>
+            </div>
+            <div class="card-metric-strip">
+              <span>Curvature: <strong id="life-curvature">1.18</strong></span>
+              <span>Normalized Length: <strong id="life-length">82%</strong></span>
+              <span>Score: <strong id="life-score">92/100</strong></span>
+            </div>
+            <p class="reading-body" id="life-summary">Loading interpretation...</p>
+          </div>
+
+          <!-- Head Line Card -->
+          <div class="reading-card border-head">
+            <div class="card-head">
+              <div class="card-title-group">
+                <span class="line-indicator dot-head"></span>
+                <h3>Head Line (Wisdom & Intellect)</h3>
+              </div>
+              <div class="clarity-chip" id="head-clarity">Well-Defined</div>
+            </div>
+            <div class="card-metric-strip">
+              <span>Trajectory: <strong id="head-slope">Gentle Slope</strong></span>
+              <span>Curvature: <strong id="head-curvature">1.08</strong></span>
+              <span>Score: <strong id="head-score">88/100</strong></span>
+            </div>
+            <p class="reading-body" id="head-summary">Loading interpretation...</p>
+          </div>
+
+          <!-- Heart Line Card -->
+          <div class="reading-card border-heart">
+            <div class="card-head">
+              <div class="card-title-group">
+                <span class="line-indicator dot-heart"></span>
+                <h3>Heart Line (Love & Emotions)</h3>
+              </div>
+              <div class="clarity-chip" id="heart-clarity">Prominent</div>
+            </div>
+            <div class="card-metric-strip">
+              <span>Romantic Style: <strong id="heart-style">Idealistic</strong></span>
+              <span>Curvature: <strong id="heart-curvature">1.15</strong></span>
+              <span>Score: <strong id="heart-score">85/100</strong></span>
+            </div>
+            <p class="reading-body" id="heart-summary">Loading interpretation...</p>
+          </div>
+
+          <!-- Fate Line Card -->
+          <div class="reading-card border-fate">
+            <div class="card-head">
+              <div class="card-title-group">
+                <span class="line-indicator dot-fate"></span>
+                <h3>Fate Line (Destiny & Vocation)</h3>
+              </div>
+              <div class="clarity-chip" id="fate-clarity">Clear</div>
+            </div>
+            <div class="card-metric-strip">
+              <span>Vocation: <strong id="fate-vocation">Autonomous</strong></span>
+              <span>Continuity: <strong id="fate-continuity">Continuous</strong></span>
+              <span>Score: <strong id="fate-score">78/100</strong></span>
+            </div>
+            <p class="reading-body" id="fate-summary">Loading interpretation...</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Lower Cards: Mounts of the Palm & Auspicious Signs -->
+      <div class="lower-insights-grid">
+        
+        <!-- Palm Mounts Card -->
+        <div class="insight-card">
+          <div class="insight-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+            <h3>Chirological Palm Mounts</h3>
+          </div>
+          <div class="mounts-list" id="mounts-list-container">
+            <!-- Mount items populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Auspicious Signs & Guidance Card -->
+        <div class="insight-card">
+          <div class="insight-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <h3>Auspicious Markings & Guidance</h3>
+          </div>
+          <div class="signs-list" id="signs-list-container">
+            <!-- Signs populated dynamically -->
+          </div>
+          <div class="guidance-box">
+            <h4>Celestial Mindful Advice</h4>
+            <ul id="guidance-list">
+              <!-- Guidance items -->
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer -->
+      <div class="results-actions-bar">
+        <button id="btn-print-report" class="btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Print / Save PDF Report
+        </button>
+        <button id="btn-read-another" class="btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+          Read Another Palm
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div>PALMISTRA AI &copy; 2026 &mdash; Built with Multi-Scale Ridge Filtering, OpenCV, Scikit-Image & Chirology AI.</div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+{
+  "reading": {
+    "elemental_profile": {
+      "element": "Fire",
+      "archetype": "Fire Hand Archetype",
+      "motto": "Passionate courage, magnetic leadership, and radiant inspiration.",
+      "description": "Fire Hand: Long, vibrant palm with dynamic posture. Driven by boundless passion, charisma, adventurous spirit, and natural leadership.",
+      "strengths": [
+        "Charismatic motivator",
+        "Fearless pioneer",
+        "High creative drive"
+      ]
+    },
+    "scores": {
+      "overall_harmony": 46,
+      "vitality": 45,
+      "intellect": 59,
+      "heart_harmony": 42,
+      "destiny": 40
+    },
+    "lines": {
+      "life": {
+        "title": "Life Line (Vitality & Life Path)",
+        "score": 45,
+        "curve_pattern": "Gracefully contoured arc with steady curvature.",
+        "vitality_trait": "Harmonious balance between activity and rest, consistent endurance, and steady energy reserves.",
+        "resilience": "Higher nervous and spiritual energy; benefits greatly from meditation, nature grounding, and mindful nutrition.",
+        "journey": "Focused trajectory indicating high intentionality and decisive milestones.",
+        "clarity": "Delicate / Subtle",
+        "summary": "Harmonious balance between activity and rest, consistent endurance, and steady energy reserves. Higher nervous and spiritual energy; benefits greatly from meditation, nature grounding, and mindful nutrition. Focused trajectory indicating high intentionality and decisive milestones."
+      },
+      "head": {
+        "title": "Head Line (Wisdom & Mental Faculties)",
+        "score": 59,
+        "slope_pattern": "Slopes gently toward the Mount of Luna (the realm of imagination).",
+        "intellect_style": "Creative, intuitive thinker gifted with artistic visualization, psychological insight, and original solutions.",
+        "focus_level": "Agile, nimble thought process with curiosity spanning many simultaneous interests.",
+        "career_aptitude": "Innovation, design, strategy, psychology, writing, and creative direction.",
+        "clarity": "Delicate / Subtle",
+        "summary": "Creative, intuitive thinker gifted with artistic visualization, psychological insight, and original solutions. Agile, nimble thought process with curiosity spanning many simultaneous interests. Best suited for environments requiring innovation, design, strategy, psychology, writing, and creative direction.."
+      },
+      "heart": {
+        "title": "Heart Line (Emotional Temperament & Romance)",
+        "score": 42,
+        "curve_pattern": "Harmoniously curved line ending between Jupiter and Saturn.",
+        "romantic_style": "Emotionally mature and discerning. Balances passionate affection with healthy relational boundaries and thoughtful loyalty.",
+        "empathy_type": "Grounded empathy; offers calm perspective and enduring stability.",
+        "clarity": "Delicate / Subtle",
+        "summary": "Emotionally mature and discerning. Balances passionate affection with healthy relational boundaries and thoughtful loyalty. Grounded empathy; offers calm perspective and enduring stability."
+      },
+      "fate": {
+        "title": "Fate Line (Destiny & Career Alignment)",
+        "score": 40,
+        "presence": "Subtle, fluid crease reflecting sovereign self-determination.",
+        "destiny_style": "Unbounded destiny unconstrained by conventional tracks; thrives on personal freedom, adaptability, and personal mastery.",
+        "vocation": "Innovative pioneer, freelance consultant, lifelong explorer.",
+        "clarity": "Delicate / Subtle",
+        "summary": "Subtle, fluid crease reflecting sovereign self-determination. Unbounded destiny unconstrained by conventional tracks; thrives on personal freedom, adaptability, and personal mastery. Propels you toward innovative pioneer, freelance consultant, lifelong explorer.."
+      }
+    },
+    "mounts": [
+      {
+        "name": "Mount of Jupiter",
+        "domain": "Vision & Leadership",
+        "prominence": "Prominent",
+        "interpretation": "High moral conviction, natural mentorship abilities, and inspirational authority."
+      },
+      {
+        "name": "Mount of Venus",
+        "domain": "Vitality & Passion",
+        "prominence": "Vibrant",
+        "interpretation": "Rich aesthetic appreciation, warm hospitality, sensory delight, and generous spirit."
+      },
+      {
+        "name": "Mount of Luna",
+        "domain": "Intuition & Dreams",
+        "prominence": "Active",
+        "interpretation": "Vivid dream world, strong instinctual gut feelings, poetic imagination, and love of travel."
+      },
+      {
+        "name": "Mount of Sun (Apollo)",
+        "domain": "Artistry & Charisma",
+        "prominence": "Harmonious",
+        "interpretation": "Innate magnetism, sunny optimism, love of elegance, and flair for creative expression."
+      }
+    ],
+    "auspicious_signs": [
+      {
+        "name": "The Mystic Cross (La Croix Mystique)",
+        "significance": "Located in the quadrangle between Heart and Head lines. Indicates keen metaphysical intuition, sixth sense, and natural psychological insight."
+      },
+      {
+        "name": "The Ring of Solomon",
+        "significance": "Curved semi-circle below Mount of Jupiter. Signifies judicial wisdom, innate empathy, and talent for guiding others."
+      },
+      {
+        "name": "The Great Triangle of Vitality",
+        "significance": "Formed by intersection of Life, Head, and Fate lines. Reflects balanced intellectual and physical vitality with high problem-solving endurance."
+      }
+    ],
+    "mindful_guidance": [
+      "Honor your Fire element by grounding decisions in Passionate courage, magnetic leadership, and radiant inspiration..",
+      "Your Head and Heart lines show a strong synergy between emotional intuition and rational focus.",
+      "Nurture your Fate Line by setting clear milestones while staying receptive to serendipitous opportunities.",
+      "Practice restorative grounding to keep your Mount of Venus vitality replenished."
+    ]
+  },
+  "line_metrics": {
+    "Heart": {
+      "metrics": {
+        "length": 240.5,
+        "normalized_length": 52.2,
+        "curvature": 1.09,
+        "depth_score": 16,
+        "clarity": "Delicate / Subtle",
+        "angle": 104.2,
+        "start_point": [
+          89,
+          3
+        ],
+        "end_point": [
+          35,
+          217
+        ]
+      },
+      "points_count": 35,
+      "color_bgr": [
+        230,
+        40,
+        110
+      ]
+    },
+    "Head": {
+      "metrics": {
+        "length": 617.3,
+        "normalized_length": 100.0,
+        "curvature": 1.17,
+        "depth_score": 10,
+        "clarity": "Delicate / Subtle",
+        "angle": 106.6,
+        "start_point": [
+          495,
+          2
+        ],
+        "end_point": [
+          344,
+          508
+        ]
+      },
+      "points_count": 35,
+      "color_bgr": [
+        50,
+        160,
+        250
+      ]
+    },
+    "Life": {
+      "metrics": {
+        "length": 276.2,
+        "normalized_length": 59.9,
+        "curvature": 1.13,
+        "depth_score": 13,
+        "clarity": "Delicate / Subtle",
+        "angle": 54.7,
+        "start_point": [
+          -13,
+          309
+        ],
+        "end_point": [
+          128,
+          508
+        ]
+      },
+      "points_count": 35,
+      "color_bgr": [
+        40,
+        210,
+        80
+      ]
+    },
+    "Fate": {
+      "metrics": {
+        "length": 28.2,
+        "normalized_length": 6.1,
+        "curvature": 1.11,
+        "depth_score": 28,
+        "clarity": "Delicate / Subtle",
+        "angle": 78.7,
+        "start_point": [
+          239,
+          88
+        ],
+        "end_point": [
+          244,
+          113
+        ]
+      },
+      "points_count": 35,
+      "color_bgr": [
+        240,
+        190,
+        40
+      ]
+    }
+  },
+  "hand_geometry": {
+    "type": "Fire",
+    "aspect_ratio": 0.65,
+    "solidity": 0.84
+  }
+}
