@@ -1,16 +1,107 @@
 /**
  * PALMISTRA AI - Frontend Application Controller
- * Handles Camera capture, drag-and-drop file upload, sample presets,
- * interactive canvas SVG overlay rendering, layer toggles, and report display.
+ * Version 2.0: Ultra-Premium Celestial Glassmorphism & Interactive Vision Studio
+ * Features:
+ *   - Stardust particle canvas simulation with subtle twinkle & cursor parallax
+ *   - Drag & drop with instant preview before analysis
+ *   - Web camera feed with palm alignment guide & countdown capture
+ *   - Interactive Vision Studio:
+ *       * Zoom (1x to 3x) & Pan viewport
+ *       * Before/After Crease Split Comparison Slider
+ *       * Bi-directional Line Hover (hover card -> glows on canvas, hover line -> glows card)
+ *       * Layer filter toggles
+ *   - Harmony score circular gauge animation
+ *   - Responsive report printing
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // State variables
+  // Application State
   let currentAnalysis = null;
-  let activeView = 'overlay'; // 'overlay' | 'ridge' | 'blueprint' | 'roi'
+  let activeView = 'overlay'; // 'overlay' | 'ridge' | 'blueprint' | 'roi' | 'split'
   let cameraStream = null;
 
-  // DOM Elements - Tabs
+  // Zoom & Pan State
+  let zoomLevel = 1.0;
+  let panX = 0;
+  let panY = 0;
+  let isPanning = false;
+  let startPanX = 0;
+  let startPanY = 0;
+
+  // Split Slider State
+  let isDraggingSplit = false;
+  let splitPercent = 50;
+
+  // Selected File State
+  let selectedFileBase64 = null;
+
+  // =========================================================================
+  // 1. Ambient Stardust Canvas Simulation
+  // =========================================================================
+  const starCanvas = document.getElementById('starfield-canvas');
+  let starCtx = starCanvas ? starCanvas.getContext('2d') : null;
+  let stars = [];
+  let mouseX = 0;
+  let mouseY = 0;
+
+  function initStarfield() {
+    if (!starCanvas || !starCtx) return;
+    
+    function resizeCanvas() {
+      starCanvas.width = window.innerWidth;
+      starCanvas.height = window.innerHeight;
+      createStars();
+    }
+
+    function createStars() {
+      stars = [];
+      const count = Math.floor((starCanvas.width * starCanvas.height) / 8000);
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * starCanvas.width,
+          y: Math.random() * starCanvas.height,
+          radius: Math.random() * 1.5 + 0.4,
+          alpha: Math.random() * 0.7 + 0.2,
+          speed: Math.random() * 0.02 + 0.005,
+          phase: Math.random() * Math.PI * 2,
+          color: Math.random() > 0.8 ? '#fde68a' : (Math.random() > 0.6 ? '#c4b5fd' : '#ffffff')
+        });
+      }
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX - window.innerWidth / 2) * 0.02;
+      mouseY = (e.clientY - window.innerHeight / 2) * 0.02;
+    });
+
+    resizeCanvas();
+
+    function renderStars() {
+      starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+      for (let s of stars) {
+        s.phase += s.speed;
+        const currentAlpha = Math.max(0.1, s.alpha + Math.sin(s.phase) * 0.3);
+
+        starCtx.beginPath();
+        starCtx.arc(s.x + mouseX * s.radius, s.y + mouseY * s.radius, s.radius, 0, Math.PI * 2);
+        starCtx.fillStyle = s.color;
+        starCtx.globalAlpha = currentAlpha;
+        starCtx.shadowBlur = s.radius > 1 ? 4 : 0;
+        starCtx.shadowColor = s.color;
+        starCtx.fill();
+      }
+      starCtx.globalAlpha = 1.0;
+      requestAnimationFrame(renderStars);
+    }
+    renderStars();
+  }
+  initStarfield();
+
+  // =========================================================================
+  // 2. DOM Elements Mapping
+  // =========================================================================
+  // Tabs & Panels
   const tabUpload = document.getElementById('tab-upload');
   const tabCamera = document.getElementById('tab-camera');
   const tabSamples = document.getElementById('tab-samples');
@@ -18,44 +109,70 @@ document.addEventListener('DOMContentLoaded', () => {
   const panelCamera = document.getElementById('panel-camera');
   const panelSamples = document.getElementById('panel-samples');
 
-  // DOM Elements - Upload
+  // Hero & Header Actions
+  const btnHeaderDemo = document.getElementById('btn-header-demo');
+  const heroBtnDemo = document.getElementById('hero-btn-demo');
+  const btnOpenCamera = document.getElementById('btn-open-camera');
+
+  // Upload Elements
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
+  const dropZoneIdle = document.getElementById('drop-zone-idle');
+  const dropZonePreview = document.getElementById('drop-zone-preview');
+  const previewImg = document.getElementById('preview-img');
+  const previewFilename = document.getElementById('preview-filename');
+  const btnAnalyzePreview = document.getElementById('btn-analyze-preview');
+  const btnChangePreview = document.getElementById('btn-change-preview');
 
-  // DOM Elements - Camera
+  // Camera Elements
   const cameraFeed = document.getElementById('camera-feed');
   const btnStartCamera = document.getElementById('btn-start-camera');
   const btnCapturePhoto = document.getElementById('btn-capture-photo');
   const btnStopCamera = document.getElementById('btn-stop-camera');
-  const btnOpenCameraHeader = document.getElementById('btn-open-camera');
 
-  // DOM Elements - Scanner Modal
+  // Scanner Modal
   const scannerModal = document.getElementById('scanner-modal');
   const scannerStatus = document.getElementById('scanner-status');
   const scannerProgressFill = document.getElementById('scanner-progress-fill');
 
-  // DOM Elements - Results Dashboard
+  // Results Dashboard
   const resultsDashboard = document.getElementById('results-dashboard');
+  const canvasViewport = document.getElementById('canvas-viewport');
+  const canvasTransformWrapper = document.getElementById('canvas-transform-wrapper');
+  const singleViewContainer = document.getElementById('single-view-container');
   const activeVisualImg = document.getElementById('active-visual-img');
   const svgOverlay = document.getElementById('interactive-svg-overlay');
   const svgMountsGroup = document.getElementById('svg-mounts-group');
   const svgLinesGroup = document.getElementById('svg-lines-group');
   const canvasTooltip = document.getElementById('canvas-tooltip');
-  const canvasViewport = document.getElementById('canvas-viewport');
+  const studioModeLabel = document.getElementById('studio-mode-label');
 
-  // DOM Elements - Layer Toggles
+  // Split Comparison Elements
+  const splitSliderContainer = document.getElementById('split-slider-container');
+  const splitBeforeImg = document.getElementById('split-before-img');
+  const splitOverlayWrapper = document.getElementById('split-overlay-wrapper');
+  const splitAfterImg = document.getElementById('split-after-img');
+  const splitDividerHandle = document.getElementById('split-divider-handle');
+
+  // Zoom & Pan Toolbar
+  const btnZoomIn = document.getElementById('btn-zoom-in');
+  const btnZoomOut = document.getElementById('btn-zoom-out');
+  const btnZoomReset = document.getElementById('btn-zoom-reset');
+  const zoomLevelText = document.getElementById('zoom-level-text');
+
+  // Layer Toggles
   const toggleHeart = document.getElementById('toggle-heart');
   const toggleHead = document.getElementById('toggle-head');
   const toggleLife = document.getElementById('toggle-life');
   const toggleFate = document.getElementById('toggle-fate');
   const toggleMounts = document.getElementById('toggle-mounts');
 
-  // DOM Elements - Actions
+  // Actions
   const btnPrintReport = document.getElementById('btn-print-report');
   const btnReadAnother = document.getElementById('btn-read-another');
 
   // =========================================================================
-  // 1. Tab Switching
+  // 3. Tab Switching
   // =========================================================================
   function switchTab(target) {
     [tabUpload, tabCamera, tabSamples].forEach(t => t.classList.remove('active'));
@@ -64,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (target === 'upload') {
       tabUpload.classList.add('active');
       panelUpload.classList.add('active');
+      stopCamera();
     } else if (target === 'camera') {
       tabCamera.classList.add('active');
       panelCamera.classList.add('active');
@@ -71,21 +189,31 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (target === 'samples') {
       tabSamples.classList.add('active');
       panelSamples.classList.add('active');
+      stopCamera();
     }
   }
 
   tabUpload.addEventListener('click', () => switchTab('upload'));
   tabCamera.addEventListener('click', () => switchTab('camera'));
   tabSamples.addEventListener('click', () => switchTab('samples'));
-  if (btnOpenCameraHeader) {
-    btnOpenCameraHeader.addEventListener('click', () => {
+
+  if (btnOpenCamera) {
+    btnOpenCamera.addEventListener('click', () => {
       document.getElementById('input-section').scrollIntoView({ behavior: 'smooth' });
       switchTab('camera');
     });
   }
 
+  // Quick Demo Buttons
+  if (btnHeaderDemo) {
+    btnHeaderDemo.addEventListener('click', () => analyzeSamplePreset('earth'));
+  }
+  if (heroBtnDemo) {
+    heroBtnDemo.addEventListener('click', () => analyzeSamplePreset('earth'));
+  }
+
   // =========================================================================
-  // 2. Drag & Drop File Upload
+  // 4. Drag & Drop File Upload with Preview
   // =========================================================================
   dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
@@ -100,21 +228,21 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     dropZone.classList.remove('drag-over');
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleImageFile(e.dataTransfer.files[0]);
+      processSelectedFile(e.dataTransfer.files[0]);
     }
   });
 
-  dropZone.addEventListener('click', () => {
+  dropZoneIdle.addEventListener('click', () => {
     fileInput.click();
   });
 
   fileInput.addEventListener('change', (e) => {
     if (e.target.files && e.target.files[0]) {
-      handleImageFile(e.target.files[0]);
+      processSelectedFile(e.target.files[0]);
     }
   });
 
-  function handleImageFile(file) {
+  function processSelectedFile(file) {
     if (!file.type.startsWith('image/')) {
       alert('Please upload a valid image file (JPEG, PNG, WEBP).');
       return;
@@ -122,14 +250,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const base64Data = event.target.result;
-      analyzeBase64(base64Data);
+      selectedFileBase64 = event.target.result;
+      previewImg.src = selectedFileBase64;
+      previewFilename.innerText = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      dropZoneIdle.style.display = 'none';
+      dropZonePreview.style.display = 'flex';
     };
     reader.readAsDataURL(file);
   }
 
+  btnAnalyzePreview.addEventListener('click', () => {
+    if (selectedFileBase64) {
+      analyzeBase64(selectedFileBase64);
+    }
+  });
+
+  btnChangePreview.addEventListener('click', () => {
+    selectedFileBase64 = null;
+    dropZonePreview.style.display = 'none';
+    dropZoneIdle.style.display = 'block';
+    fileInput.value = '';
+  });
+
   // =========================================================================
-  // 3. Live Webcam Controller
+  // 5. Live Webcam Controller
   // =========================================================================
   async function startCamera() {
     try {
@@ -144,7 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
       btnStopCamera.style.display = 'inline-flex';
     } catch (err) {
       console.warn('Camera access error:', err);
-      alert('Camera access could not be initialized or permission was denied. You can still upload a photo or select an archetype sample!');
+      alert('Camera access could not be initialized or permission was denied. You can still upload a photo or select an archetype preset!');
+      switchTab('upload');
     }
   }
 
@@ -153,10 +298,10 @@ document.addEventListener('DOMContentLoaded', () => {
       cameraStream.getTracks().forEach(track => track.stop());
       cameraStream = null;
     }
-    cameraFeed.srcObject = null;
-    btnStartCamera.style.display = 'inline-flex';
-    btnCapturePhoto.style.display = 'none';
-    btnStopCamera.style.display = 'none';
+    if (cameraFeed) cameraFeed.srcObject = null;
+    if (btnStartCamera) btnStartCamera.style.display = 'inline-flex';
+    if (btnCapturePhoto) btnCapturePhoto.style.display = 'none';
+    if (btnStopCamera) btnStopCamera.style.display = 'none';
   }
 
   btnStartCamera.addEventListener('click', startCamera);
@@ -178,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =========================================================================
-  // 4. Sample Preset Selection
+  // 6. Preset Archetype Selection
   // =========================================================================
   document.querySelectorAll('.sample-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -188,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =========================================================================
-  // 5. API Requests & Scanner Animation
+  // 7. API Requests & Scanner Animation
   // =========================================================================
   function showScanner() {
     scannerModal.style.display = 'flex';
@@ -259,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // 6. Render Results Dashboard
+  // 8. Render Results Dashboard
   // =========================================================================
   function renderResults(data) {
     currentAnalysis = data;
@@ -310,22 +455,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Life Line
     document.getElementById('life-clarity').innerText = lines.life.clarity;
-    document.getElementById('life-curvature').innerText = lineMetrics.Life?.metrics?.curvature || '1.14';
-    document.getElementById('life-length').innerText = `${lineMetrics.Life?.metrics?.normalized_length || 75}%`;
+    document.getElementById('life-curvature').innerText = lineMetrics.Life?.metrics?.curvature || '1.18';
+    document.getElementById('life-length').innerText = `${lineMetrics.Life?.metrics?.normalized_length || 82}%`;
     document.getElementById('life-score').innerText = `${lines.life.score}/100`;
     document.getElementById('life-summary').innerText = lines.life.summary;
 
     // Head Line
     document.getElementById('head-clarity').innerText = lines.head.clarity;
     document.getElementById('head-slope').innerText = lines.head.slope_pattern ? lines.head.slope_pattern.split(' ')[0] : 'Slope';
-    document.getElementById('head-curvature').innerText = lineMetrics.Head?.metrics?.curvature || '1.06';
+    document.getElementById('head-curvature').innerText = lineMetrics.Head?.metrics?.curvature || '1.08';
     document.getElementById('head-score').innerText = `${lines.head.score}/100`;
     document.getElementById('head-summary').innerText = lines.head.summary;
 
     // Heart Line
     document.getElementById('heart-clarity').innerText = lines.heart.clarity;
     document.getElementById('heart-style').innerText = lines.heart.romantic_style ? lines.heart.romantic_style.split(',')[0] : 'Warm';
-    document.getElementById('heart-curvature').innerText = lineMetrics.Heart?.metrics?.curvature || '1.12';
+    document.getElementById('heart-curvature').innerText = lineMetrics.Heart?.metrics?.curvature || '1.15';
     document.getElementById('heart-score').innerText = `${lines.heart.score}/100`;
     document.getElementById('heart-summary').innerText = lines.heart.summary;
 
@@ -344,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
       item.className = 'mount-item';
       item.innerHTML = `
         <div class="mount-title">${m.name}</div>
-        <div class="mount-domain">${m.domain} • ${m.prominence}</div>
+        <div class="mount-domain">${m.domain} &bull; ${m.prominence}</div>
         <div class="mount-desc">${m.interpretation}</div>
       `;
       mountsContainer.appendChild(item);
@@ -371,6 +516,9 @@ document.addEventListener('DOMContentLoaded', () => {
       guidanceList.appendChild(li);
     });
 
+    // Reset zoom and pan on new reading
+    resetZoomAndPan();
+
     // 6. Update Visual Canvas and interactive SVG
     updateCanvasView(activeView);
     renderInteractiveSVG();
@@ -380,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // 7. Interactive Vision Studio Canvas & SVG Overlays
+  // 9. Interactive Vision Studio: Canvas & View Modes
   // =========================================================================
   function updateCanvasView(viewName) {
     activeView = viewName;
@@ -391,18 +539,39 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!currentAnalysis || !currentAnalysis.visualizations) return;
     const visuals = currentAnalysis.visualizations;
 
-    if (viewName === 'overlay') {
-      activeVisualImg.src = visuals.overlay;
-      svgOverlay.style.display = 'block';
-    } else if (viewName === 'ridge') {
-      activeVisualImg.src = visuals.ridge_map;
-      svgOverlay.style.display = 'none'; // pure heatmap
-    } else if (viewName === 'blueprint') {
-      activeVisualImg.src = visuals.blueprint;
+    if (viewName === 'split') {
+      // Split Comparison Mode
+      singleViewContainer.style.display = 'none';
+      splitSliderContainer.style.display = 'block';
       svgOverlay.style.display = 'none';
-    } else if (viewName === 'roi') {
-      activeVisualImg.src = visuals.roi;
-      svgOverlay.style.display = 'block';
+      
+      splitBeforeImg.src = visuals.roi;
+      splitAfterImg.src = visuals.ridge_map;
+      
+      updateSplitSliderPosition(50);
+      studioModeLabel.innerHTML = 'Mode: <strong>Split Comparison</strong> &bull; Drag slider to reveal crease heatmap';
+    } else {
+      // Single View Modes
+      singleViewContainer.style.display = 'flex';
+      splitSliderContainer.style.display = 'none';
+
+      if (viewName === 'overlay') {
+        activeVisualImg.src = visuals.overlay;
+        svgOverlay.style.display = 'block';
+        studioModeLabel.innerHTML = 'Mode: <strong>Full Overlay</strong> &bull; Interactive SVG active';
+      } else if (viewName === 'ridge') {
+        activeVisualImg.src = visuals.ridge_map;
+        svgOverlay.style.display = 'none';
+        studioModeLabel.innerHTML = 'Mode: <strong>Frangi Ridge Heatmap</strong> &bull; Vessel creasemap';
+      } else if (viewName === 'blueprint') {
+        activeVisualImg.src = visuals.blueprint;
+        svgOverlay.style.display = 'none';
+        studioModeLabel.innerHTML = 'Mode: <strong>Celestial Blueprint</strong> &bull; Inverted contrast';
+      } else if (viewName === 'roi') {
+        activeVisualImg.src = visuals.roi;
+        svgOverlay.style.display = 'block';
+        studioModeLabel.innerHTML = 'Mode: <strong>Raw Palm ROI</strong> &bull; Segmented palm area';
+      }
     }
   }
 
@@ -412,6 +581,136 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // =========================================================================
+  // 10. Split Comparison Slider Dragging
+  // =========================================================================
+  function updateSplitSliderPosition(percent) {
+    splitPercent = Math.max(0, Math.min(100, percent));
+    splitOverlayWrapper.style.width = `${splitPercent}%`;
+    splitDividerHandle.style.left = `${splitPercent}%`;
+  }
+
+  function handleSplitDrag(clientX) {
+    const rect = splitSliderContainer.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const percent = (x / rect.width) * 100;
+    updateSplitSliderPosition(percent);
+  }
+
+  splitSliderContainer.addEventListener('mousedown', (e) => {
+    if (activeView !== 'split') return;
+    isDraggingSplit = true;
+    handleSplitDrag(e.clientX);
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDraggingSplit) return;
+    handleSplitDrag(e.clientX);
+  });
+
+  window.addEventListener('mouseup', () => {
+    isDraggingSplit = false;
+  });
+
+  // Touch support for split slider
+  splitSliderContainer.addEventListener('touchstart', (e) => {
+    if (activeView !== 'split') return;
+    isDraggingSplit = true;
+    if (e.touches[0]) handleSplitDrag(e.touches[0].clientX);
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isDraggingSplit) return;
+    if (e.touches[0]) handleSplitDrag(e.touches[0].clientX);
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    isDraggingSplit = false;
+  });
+
+  // =========================================================================
+  // 11. Zoom & Pan Engine
+  // =========================================================================
+  function updateTransform() {
+    canvasTransformWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+    zoomLevelText.innerText = `${Math.round(zoomLevel * 100)}%`;
+  }
+
+  function zoomIn() {
+    if (zoomLevel < 3.0) {
+      zoomLevel = Math.min(3.0, +(zoomLevel + 0.25).toFixed(2));
+      updateTransform();
+    }
+  }
+
+  function zoomOut() {
+    if (zoomLevel > 1.0) {
+      zoomLevel = Math.max(1.0, +(zoomLevel - 0.25).toFixed(2));
+      if (zoomLevel === 1.0) {
+        panX = 0;
+        panY = 0;
+      }
+      updateTransform();
+    }
+  }
+
+  function resetZoomAndPan() {
+    zoomLevel = 1.0;
+    panX = 0;
+    panY = 0;
+    updateTransform();
+  }
+
+  btnZoomIn.addEventListener('click', zoomIn);
+  btnZoomOut.addEventListener('click', zoomOut);
+  btnZoomReset.addEventListener('click', resetZoomAndPan);
+
+  // Mouse Wheel Zooming
+  canvasViewport.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      zoomIn();
+    } else {
+      zoomOut();
+    }
+  }, { passive: false });
+
+  // Pan / Dragging
+  canvasViewport.addEventListener('mousedown', (e) => {
+    // If in split mode or clicking slider, don't pan
+    if (activeView === 'split' || isDraggingSplit) return;
+    if (zoomLevel > 1.0) {
+      isPanning = true;
+      startPanX = e.clientX - panX;
+      startPanY = e.clientY - panY;
+      canvasViewport.classList.add('panning');
+    }
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isPanning) return;
+    panX = e.clientX - startPanX;
+    panY = e.clientY - startPanY;
+    updateTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isPanning) {
+      isPanning = false;
+      canvasViewport.classList.remove('panning');
+    }
+  });
+
+  // =========================================================================
+  // 12. Interactive SVG Overlays & Bi-Directional Hover Inspector
+  // =========================================================================
+  const lineColors = {
+    Heart: '#f43f5e',
+    Head: '#0ea5e9',
+    Life: '#10b981',
+    Fate: '#f59e0b'
+  };
+
   function renderInteractiveSVG() {
     svgMountsGroup.innerHTML = '';
     svgLinesGroup.innerHTML = '';
@@ -420,7 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const lines = currentAnalysis.lines || {};
     const mounts = currentAnalysis.mounts || {};
 
-    // 1. Draw Mounts circles
+    // 1. Draw Planetary Mount Circles
     for (const [key, mount] of Object.entries(mounts)) {
       const cx = mount.pos[0];
       const cy = mount.pos[1];
@@ -430,15 +729,15 @@ document.addEventListener('DOMContentLoaded', () => {
       circle.setAttribute('cx', cx);
       circle.setAttribute('cy', cy);
       circle.setAttribute('r', r);
-      circle.setAttribute('fill', 'rgba(168, 85, 247, 0.18)');
-      circle.setAttribute('stroke', 'rgba(192, 132, 252, 0.6)');
+      circle.setAttribute('fill', 'rgba(168, 85, 247, 0.16)');
+      circle.setAttribute('stroke', 'rgba(192, 132, 252, 0.7)');
       circle.setAttribute('stroke-width', '1.5');
       circle.setAttribute('stroke-dasharray', '3 3');
       circle.classList.add('svg-mount-circle');
       circle.dataset.layer = 'mounts';
 
       circle.addEventListener('mouseenter', (e) => {
-        showTooltip(e, `<strong>${mount.name}</strong><br>${mount.meaning}`);
+        showTooltip(e, `<strong>${mount.name}</strong><br><span style="color:#c084fc;">Domain:</span> ${mount.meaning}`);
       });
       circle.addEventListener('mousemove', moveTooltip);
       circle.addEventListener('mouseleave', hideTooltip);
@@ -446,14 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
       svgMountsGroup.appendChild(circle);
     }
 
-    // 2. Draw Major Lines as smooth SVG paths
-    const lineColors = {
-      Heart: '#f43f5e',
-      Head: '#0ea5e9',
-      Life: '#10b981',
-      Fate: '#f59e0b'
-    };
-
+    // 2. Draw Major Lines
     for (const [lineName, lineData] of Object.entries(lines)) {
       const pts = lineData.points;
       if (!pts || pts.length < 2) continue;
@@ -466,21 +758,31 @@ document.addEventListener('DOMContentLoaded', () => {
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', d);
       path.setAttribute('stroke', lineColors[lineName] || '#ffffff');
-      path.setAttribute('stroke-width', '3.5');
+      path.setAttribute('stroke-width', '4');
       path.classList.add('svg-interactive-line');
-      path.dataset.layer = lineName.toLowerCase();
+      
+      const lineKey = lineName.toLowerCase();
+      path.dataset.layer = lineKey;
+      path.id = `svg-path-${lineKey}`;
 
       const metrics = lineData.metrics || {};
       const tooltipText = `
-        <strong>${lineName} Line</strong><br>
+        <strong style="color:${lineColors[lineName]};">${lineName} Line</strong><br>
         Clarity: ${metrics.clarity || 'Defined'}<br>
         Curvature: ${metrics.curvature || '1.10'}<br>
         Depth Score: ${metrics.depth_score || 50}/100
       `;
 
-      path.addEventListener('mouseenter', (e) => showTooltip(e, tooltipText));
+      // Line Hover Events (Bi-directional)
+      path.addEventListener('mouseenter', (e) => {
+        highlightLine(lineKey);
+        showTooltip(e, tooltipText);
+      });
       path.addEventListener('mousemove', moveTooltip);
-      path.addEventListener('mouseleave', hideTooltip);
+      path.addEventListener('mouseleave', () => {
+        resetLineHighlights();
+        hideTooltip();
+      });
 
       svgLinesGroup.appendChild(path);
     }
@@ -488,6 +790,53 @@ document.addEventListener('DOMContentLoaded', () => {
     applyLayerToggles();
   }
 
+  // Bi-directional Highlights
+  function highlightLine(lineKey) {
+    // 1. Canvas SVG paths
+    const allPaths = svgLinesGroup.querySelectorAll('.svg-interactive-line');
+    allPaths.forEach(p => {
+      if (p.dataset.layer === lineKey) {
+        p.classList.add('line-highlighted');
+        p.classList.remove('line-dimmed');
+      } else {
+        p.classList.add('line-dimmed');
+        p.classList.remove('line-highlighted');
+      }
+    });
+
+    // 2. Reading Cards
+    document.querySelectorAll('.interactive-reading-card').forEach(card => {
+      if (card.dataset.line === lineKey) {
+        card.classList.add('card-highlighted');
+        card.classList.remove('card-dimmed');
+      } else {
+        card.classList.add('card-dimmed');
+        card.classList.remove('card-highlighted');
+      }
+    });
+  }
+
+  function resetLineHighlights() {
+    svgLinesGroup.querySelectorAll('.svg-interactive-line').forEach(p => {
+      p.classList.remove('line-highlighted', 'line-dimmed');
+    });
+    document.querySelectorAll('.interactive-reading-card').forEach(card => {
+      card.classList.remove('card-highlighted', 'card-dimmed');
+    });
+  }
+
+  // Hook up hover listeners on the Reading Cards as well!
+  document.querySelectorAll('.interactive-reading-card').forEach(card => {
+    const lineKey = card.dataset.line;
+    card.addEventListener('mouseenter', () => {
+      highlightLine(lineKey);
+    });
+    card.addEventListener('mouseleave', () => {
+      resetLineHighlights();
+    });
+  });
+
+  // Layer Toggles
   function applyLayerToggles() {
     const showHeart = toggleHeart.checked;
     const showHead = toggleHead.checked;
@@ -512,7 +861,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chk.addEventListener('change', applyLayerToggles);
   });
 
-  // Tooltip Helper
+  // Tooltip Helpers
   function showTooltip(e, htmlContent) {
     canvasTooltip.innerHTML = htmlContent;
     canvasTooltip.style.display = 'block';
@@ -521,10 +870,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function moveTooltip(e) {
     const rect = canvasViewport.getBoundingClientRect();
-    const x = e.clientX - rect.left + 15;
-    const y = e.clientY - rect.top + 15;
-    canvasTooltip.style.left = `${Math.min(x, rect.width - 200)}px`;
-    canvasTooltip.style.top = `${Math.min(y, rect.height - 80)}px`;
+    const x = e.clientX - rect.left + 14;
+    const y = e.clientY - rect.top + 14;
+    canvasTooltip.style.left = `${Math.min(x, rect.width - 220)}px`;
+    canvasTooltip.style.top = `${Math.min(y, rect.height - 90)}px`;
   }
 
   function hideTooltip() {
@@ -532,7 +881,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // 8. Actions (Print & Reset)
+  // 13. Actions (Print & Reset)
   // =========================================================================
   btnPrintReport.addEventListener('click', () => {
     window.print();
@@ -542,8 +891,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('input-section').scrollIntoView({ behavior: 'smooth' });
   });
 
-  // Automatically trigger sample earth on load for immediate interactive demonstration!
-  setTimeout(() => {
-    analyzeSamplePreset('earth');
-  }, 300);
 });
