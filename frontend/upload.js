@@ -1,6 +1,6 @@
 /**
  * PALMISTRA AI - Dedicated Upload Photo Controller (upload.js)
- * High-precision photo upload, pre-processing transforms (rotate, flip, hand selection),
+ * Version 2.0: High-precision photo upload, pre-processing transforms (rotate, flip, hand selection),
  * clipboard paste, Frangi ridge extraction, and Interactive Vision Studio results.
  */
 
@@ -150,12 +150,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let splitPercent = 50;
 
   // Layer filter state
-  const layerVisibility = {
-    heart: true,
-    head: true,
-    life: true,
-    fate: true,
-    mounts: true
+  const layerToggles = {
+    heart: document.getElementById('toggle-heart'),
+    head: document.getElementById('toggle-head'),
+    life: document.getElementById('toggle-life'),
+    fate: document.getElementById('toggle-fate'),
+    mounts: document.getElementById('toggle-mounts')
+  };
+
+  const lineColors = {
+    Heart: '#f43f5e',
+    Head: '#0ea5e9',
+    Life: '#10b981',
+    Fate: '#f59e0b'
   };
 
   // =========================================================================
@@ -237,25 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsDataURL(file);
   }
 
-  function handleImageUrl(url, filename = 'archetype_palm.png') {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      loadedImage = img;
-      rotationAngle = 0;
-      isFlippedH = false;
-
-      metaFilename.innerText = filename;
-      metaFilesize.innerText = 'Pre-rendered';
-
-      renderTransformedImage();
-
-      idleState.style.display = 'none';
-      previewState.style.display = 'block';
-    };
-    img.src = url;
-  }
-
   // =========================================================================
   // 4. File Drag & Drop, File Picker & Clipboard Paste
   // =========================================================================
@@ -293,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Clipboard paste listener (window-wide and button)
+  // Clipboard paste listener
   async function pasteFromClipboard() {
     try {
       if (navigator.clipboard && navigator.clipboard.read) {
@@ -308,10 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
-      alert('No image found in clipboard. Please copy an image first or press Ctrl+V directly.');
+      alert('No image found in clipboard. Please copy an image first or press Ctrl+V directly on this page.');
     } catch (err) {
       console.warn('Clipboard read error:', err);
-      alert('Clipboard access requires permission or press Ctrl+V while on this page.');
+      alert('Clipboard access requires permission or press Ctrl+V directly on this page.');
     }
   }
 
@@ -332,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Archetype preset buttons
+  // Preset archetype chips
   document.querySelectorAll('[data-sample]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -347,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Transform buttons
+  // Pre-Analysis Transform buttons
   btnRotateLeft.addEventListener('click', (e) => {
     e.stopPropagation();
     rotationAngle = (rotationAngle - 90 + 360) % 360;
@@ -399,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =========================================================================
-  // 5. API Call & Scanner Progress Modal
+  // 5. API Requests & Scanner Modal
   // =========================================================================
   function showScanner() {
     scannerModal.style.display = 'flex';
@@ -418,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setTimeout(() => {
       scannerProgressFill.style.width = '95%';
-      scannerStatus.innerText = 'Synthesizing chiromancy reading & planetary mounts...';
+      scannerStatus.innerText = 'Synthesizing Chiromancy reading & Mounts...';
     }, 1350);
   }
 
@@ -426,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
     scannerProgressFill.style.width = '100%';
     setTimeout(() => {
       scannerModal.style.display = 'none';
-    }, 300);
+    }, 250);
   }
 
   btnExecuteAnalysis.addEventListener('click', (e) => {
@@ -448,18 +436,17 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.detail || 'Analysis request failed.');
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || `Server returned HTTP ${response.status}`);
       }
 
       const data = await response.json();
-      currentAnalysis = data;
       hideScanner();
       renderDashboard(data);
     } catch (err) {
       hideScanner();
-      alert(`Palm Analysis Error: ${err.message || err}`);
-      console.error(err);
+      console.error('Analysis failed:', err);
+      alert(`Palm Analysis Error: ${err.message || 'Please ensure the palm is clearly visible and well lit.'}`);
     }
   }
 
@@ -471,18 +458,17 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.detail || 'Sample analysis failed.');
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || `Server returned HTTP ${response.status}`);
       }
 
       const data = await response.json();
-      currentAnalysis = data;
       hideScanner();
       renderDashboard(data);
     } catch (err) {
       hideScanner();
-      alert(`Preset Load Error: ${err.message || err}`);
-      console.error(err);
+      console.error('Preset analysis failed:', err);
+      alert(`Preset Load Error: ${err.message || 'Error processing sample palm.'}`);
     }
   }
 
@@ -490,459 +476,311 @@ document.addEventListener('DOMContentLoaded', () => {
   // 6. Interactive Results Dashboard Renderer
   // =========================================================================
   function renderDashboard(data) {
-    const reading = data.reading;
-    const elemental = reading.elemental_archetype;
-    const lines = data.lines;
-    const mounts = data.mounts;
-    const visuals = data.visualizations;
-
-    // 1. Reveal Dashboard & Scroll
+    currentAnalysis = data;
     resultsDashboard.style.display = 'block';
-    resultsDashboard.scrollIntoView({ behavior: 'smooth' });
 
-    // 2. Populate Elemental Archetype Header
-    const elementIcons = { Earth: '🌱', Air: '💨', Fire: '🔥', Water: '🌊' };
-    document.getElementById('res-element-icon').innerText = elementIcons[elemental.element] || '✨';
-    document.getElementById('res-archetype-title').innerText = `${elemental.archetype} (${elemental.element})`;
-    document.getElementById('res-archetype-motto').innerText = `"${elemental.motto}"`;
+    const reading = data.reading || {};
+    const profile = reading.elemental_profile || {};
+    const scores = reading.scores || {};
+    const lines = reading.lines || {};
+    const lineMetrics = data.lines || {};
 
-    const strengthsContainer = document.getElementById('res-strengths-chips');
-    strengthsContainer.innerHTML = '';
-    elemental.strengths.forEach(str => {
-      const chip = document.createElement('span');
-      chip.className = 'strength-chip';
-      chip.innerText = `✦ ${str}`;
-      strengthsContainer.appendChild(chip);
-    });
+    // 1. Archetype Header
+    const elemIcons = { Earth: '🌱', Air: '💨', Fire: '🔥', Water: '💧' };
+    const elemIconElem = document.getElementById('res-element-icon');
+    if (elemIconElem) elemIconElem.innerText = elemIcons[profile.element] || '✦';
 
-    // 3. Harmony Gauge Animation
-    const harmonyScore = elemental.harmony_score || 88;
-    animateHarmonyScore(harmonyScore);
+    const archTitleElem = document.getElementById('res-archetype-title');
+    if (archTitleElem) archTitleElem.innerText = profile.archetype || 'Balanced Hand Archetype';
+
+    const archMottoElem = document.getElementById('res-archetype-motto');
+    if (archMottoElem) archMottoElem.innerText = profile.motto ? `"${profile.motto}"` : '';
+
+    const chipsContainer = document.getElementById('res-strengths-chips');
+    if (chipsContainer) {
+      chipsContainer.innerHTML = '';
+      (profile.strengths || []).forEach(str => {
+        const chip = document.createElement('span');
+        chip.className = 'strength-chip';
+        chip.innerText = `✦ ${str}`;
+        chipsContainer.appendChild(chip);
+      });
+    }
+
+    // 2. Harmony Score & Circular Gauge
+    const harmonyVal = scores.overall_harmony || 85;
+    const scoreNumElem = document.getElementById('res-overall-harmony');
+    if (scoreNumElem) scoreNumElem.innerText = harmonyVal;
+
+    const circleFill = document.getElementById('gauge-harmony-fill');
+    if (circleFill) {
+      const circumference = 264;
+      circleFill.style.strokeDasharray = `${circumference} ${circumference}`;
+      const offset = circumference - (circumference * harmonyVal / 100);
+      circleFill.style.strokeDashoffset = offset;
+    }
 
     // Mini metric bars
-    const scores = reading.destiny_overview.scores || {};
-    animateMiniMetric('bar-vitality', 'val-vitality', scores.vitality || 85);
-    animateMiniMetric('bar-intellect', 'val-intellect', scores.intellect || 90);
-    animateMiniMetric('bar-emotion', 'val-emotion', scores.emotion || 82);
-    animateMiniMetric('bar-destiny', 'val-destiny', scores.destiny || 78);
+    setMetricBar('vitality', scores.vitality || 85);
+    setMetricBar('intellect', scores.intellect || 90);
+    setMetricBar('emotion', scores.heart_harmony || 82);
+    setMetricBar('destiny', scores.destiny || 78);
 
-    // 4. Populate Line Interpretation Cards
-    populateLineCard('life', reading.life_line, lines.life);
-    populateLineCard('head', reading.head_line, lines.head);
-    populateLineCard('heart', reading.heart_line, lines.heart);
-    populateLineCard('fate', reading.fate_line, lines.fate);
-
-    // 5. Populate Mounts Grid
-    populateMounts(reading.mounts_analysis, mounts);
-
-    // 6. Populate Auspicious Signs & Mindful Guidance
-    populateSignsAndGuidance(reading.auspicious_signs, reading.guidance);
-
-    // 7. Setup Interactive Studio Canvas
-    setupStudioCanvas(visuals, lines, mounts);
-  }
-
-  function animateHarmonyScore(targetScore) {
-    const scoreElem = document.getElementById('res-overall-harmony');
-    const circleFill = document.getElementById('gauge-harmony-fill');
-    
-    // Circumference for r=42 is 2 * PI * 42 ≈ 263.89
-    const circumference = 263.89;
-    circleFill.style.strokeDasharray = `${circumference} ${circumference}`;
-    circleFill.style.strokeDashoffset = `${circumference}`;
-
-    let current = 0;
-    const duration = 1200;
-    const stepTime = 20;
-    const steps = duration / stepTime;
-    const increment = targetScore / steps;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= targetScore) {
-        current = targetScore;
-        clearInterval(timer);
-      }
-      scoreElem.innerText = Math.round(current);
-      const offset = circumference - (current / 100) * circumference;
-      circleFill.style.strokeDashoffset = offset;
-    }, stepTime);
-  }
-
-  function animateMiniMetric(barId, valId, val) {
-    const bar = document.getElementById(barId);
-    const label = document.getElementById(valId);
-    if (bar) bar.style.width = `${val}%`;
-    if (label) label.innerText = val;
-  }
-
-  function populateLineCard(lineKey, lineData, cvLine) {
-    if (!lineData) return;
-    
-    const summaryElem = document.getElementById(`${lineKey}-summary`);
-    const clarityElem = document.getElementById(`${lineKey}-clarity`);
-    if (summaryElem) summaryElem.innerText = lineData.summary || lineData.interpretation;
-    if (clarityElem) clarityElem.innerText = lineData.clarity || 'Prominent';
-
-    if (cvLine && cvLine.metrics) {
-      const curElem = document.getElementById(`${lineKey}-curvature`);
-      const lenElem = document.getElementById(`${lineKey}-length`);
-      const scoreElem = document.getElementById(`${lineKey}-score`);
-      if (curElem && cvLine.metrics.curvature) curElem.innerText = cvLine.metrics.curvature;
-      if (lenElem && cvLine.metrics.length_ratio) lenElem.innerText = `${Math.round(cvLine.metrics.length_ratio * 100)}%`;
-      if (scoreElem && lineData.prominence_score) scoreElem.innerText = `${lineData.prominence_score}/100`;
+    // 3. Line Reading Cards
+    // Life Line
+    if (lines.life) {
+      setText('life-clarity', lines.life.clarity || 'Deep & Clear');
+      setText('life-curvature', lineMetrics.Life?.metrics?.curvature || '1.18');
+      setText('life-length', `${lineMetrics.Life?.metrics?.normalized_length || 82}%`);
+      setText('life-score', `${lines.life.score || 90}/100`);
+      setText('life-summary', lines.life.summary || lines.life.interpretation || '');
     }
-  }
 
-  function populateMounts(mountAnalysis, cvMounts) {
-    const container = document.getElementById('mounts-list-container');
-    container.innerHTML = '';
-
-    const mountIcons = {
-      jupiter: '⚡',
-      saturn: '🪐',
-      apollo: '☀️',
-      mercury: '☿',
-      venus: '🌸',
-      luna: '🌙',
-      mars: '⚔️'
-    };
-
-    for (const [key, info] of Object.entries(mountAnalysis)) {
-      const card = document.createElement('div');
-      card.className = 'mount-item';
-      card.setAttribute('data-mount', key);
-
-      const icon = mountIcons[key.toLowerCase()] || '🪐';
-      card.innerHTML = `
-        <div class="mount-item-top">
-          <span class="mount-badge-icon">${icon}</span>
-          <span class="mount-name">${info.mount || key}</span>
-          <span class="mount-prominence">${info.prominence || 'Balanced'}</span>
-        </div>
-        <div class="mount-meaning">${info.meaning || ''}</div>
-        <p class="mount-desc">${info.interpretation || info.energy_manifestation || ''}</p>
-      `;
-      container.appendChild(card);
+    // Head Line
+    if (lines.head) {
+      setText('head-clarity', lines.head.clarity || 'Well-Defined');
+      setText('head-slope', lines.head.slope_pattern ? lines.head.slope_pattern.split(' ')[0] : 'Gentle Slope');
+      setText('head-curvature', lineMetrics.Head?.metrics?.curvature || '1.08');
+      setText('head-score', `${lines.head.score || 88}/100`);
+      setText('head-summary', lines.head.summary || lines.head.interpretation || '');
     }
-  }
 
-  function populateSignsAndGuidance(signs, guidance) {
+    // Heart Line
+    if (lines.heart) {
+      setText('heart-clarity', lines.heart.clarity || 'Prominent');
+      setText('heart-style', lines.heart.romantic_style ? lines.heart.romantic_style.split(',')[0] : 'Idealistic');
+      setText('heart-curvature', lineMetrics.Heart?.metrics?.curvature || '1.15');
+      setText('heart-score', `${lines.heart.score || 85}/100`);
+      setText('heart-summary', lines.heart.summary || lines.heart.interpretation || '');
+    }
+
+    // Fate Line
+    if (lines.fate) {
+      setText('fate-clarity', lines.fate.clarity || 'Clear');
+      setText('fate-vocation', lines.fate.vocation ? lines.fate.vocation.split(',')[0] : 'Autonomous');
+      setText('fate-continuity', (lineMetrics.Fate?.metrics?.depth_score > 50) ? 'Continuous' : 'Dynamic');
+      setText('fate-score', `${lines.fate.score || 78}/100`);
+      setText('fate-summary', lines.fate.summary || lines.fate.interpretation || '');
+    }
+
+    // 4. Palm Mounts
+    const mountsContainer = document.getElementById('mounts-list-container');
+    if (mountsContainer) {
+      mountsContainer.innerHTML = '';
+      (reading.mounts || []).forEach(m => {
+        const item = document.createElement('div');
+        item.className = 'mount-item';
+        item.innerHTML = `
+          <div class="mount-title">${m.name}</div>
+          <div class="mount-domain">${m.domain} &bull; ${m.prominence}</div>
+          <div class="mount-desc">${m.interpretation}</div>
+        `;
+        mountsContainer.appendChild(item);
+      });
+    }
+
+    // 5. Auspicious Signs & Guidance
     const signsContainer = document.getElementById('signs-list-container');
-    signsContainer.innerHTML = '';
-    (signs || []).forEach(s => {
-      const item = document.createElement('div');
-      item.className = 'sign-badge';
-      item.innerHTML = `
-        <span class="sign-glyph">✦</span>
-        <div>
-          <div class="sign-title">${s.sign || s.name} (${s.location || 'Palm'})</div>
-          <div class="sign-desc">${s.interpretation || s.meaning}</div>
-        </div>
-      `;
-      signsContainer.appendChild(item);
-    });
+    if (signsContainer) {
+      signsContainer.innerHTML = '';
+      (reading.auspicious_signs || []).forEach(s => {
+        const signBox = document.createElement('div');
+        signBox.className = 'sign-box';
+        signBox.innerHTML = `
+          <div class="sign-name">${s.name}</div>
+          <div class="sign-desc">${s.significance}</div>
+        `;
+        signsContainer.appendChild(signBox);
+      });
+    }
 
     const guidanceList = document.getElementById('guidance-list');
-    guidanceList.innerHTML = '';
-    (guidance || []).forEach(g => {
-      const li = document.createElement('li');
-      li.innerText = g;
-      guidanceList.appendChild(li);
-    });
-  }
-
-  // =========================================================================
-  // 7. Interactive Vision Studio Canvas, SVG Overlay & Split Slider
-  // =========================================================================
-  function setupStudioCanvas(visuals, lines, mounts) {
-    // Reset Zoom & Pan
-    resetZoomPan();
-
-    // Set initial visual image
-    activeVisualImg.src = visuals.overlay;
-    splitBeforeImg.src = visuals.roi;
-    splitAfterImg.src = visuals.ridge_map;
-
-    // Build SVG Overlay
-    renderSvgOverlay(lines, mounts);
-
-    // Setup Split Comparison Slider
-    initSplitSlider();
-
-    // Activate default 'overlay' view
-    switchStudioView('overlay');
-  }
-
-  function renderSvgOverlay(lines, mounts) {
-    svgLinesGroup.innerHTML = '';
-    svgMountsGroup.innerHTML = '';
-
-    const lineColors = {
-      heart: '#f43f5e',
-      head: '#0ea5e9',
-      life: '#10b981',
-      fate: '#f59e0b'
-    };
-
-    // Draw Destiny Lines
-    for (const [name, data] of Object.entries(lines)) {
-      const pts = data.points;
-      if (!pts || pts.length < 2) continue;
-
-      let d = `M ${pts[0][0]} ${pts[0][1]}`;
-      for (let i = 1; i < pts.length; i++) {
-        d += ` L ${pts[i][0]} ${pts[i][1]}`;
-      }
-
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', d);
-      path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', lineColors[name] || '#8b5cf6');
-      path.setAttribute('stroke-width', '4');
-      path.setAttribute('stroke-linecap', 'round');
-      path.setAttribute('stroke-linejoin', 'round');
-      path.setAttribute('class', `svg-line-path path-${name}`);
-      path.setAttribute('filter', `url(#glow-${name})`);
-      path.setAttribute('data-line', name);
-
-      // Mouse events for tooltips and card highlighting
-      path.addEventListener('mouseenter', (e) => handleLineHover(name, e));
-      path.addEventListener('mouseleave', () => handleLineLeave(name));
-
-      svgLinesGroup.appendChild(path);
+    if (guidanceList) {
+      guidanceList.innerHTML = '';
+      (reading.mindful_guidance || []).forEach(g => {
+        const li = document.createElement('li');
+        li.innerText = g;
+        guidanceList.appendChild(li);
+      });
     }
 
-    // Draw Mount Markers
-    for (const [k, v] of Object.entries(mounts)) {
-      const cx = v.pos[0];
-      const cy = v.pos[1];
-      const r = v.radius || 24;
+    // Reset zoom and pan on new reading
+    resetZoomAndPan();
 
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('cx', cx);
-      circle.setAttribute('cy', cy);
-      circle.setAttribute('r', r);
-      circle.setAttribute('fill', 'rgba(168, 85, 247, 0.12)');
-      circle.setAttribute('stroke', 'rgba(168, 85, 247, 0.55)');
-      circle.setAttribute('stroke-width', '1.5');
-      circle.setAttribute('stroke-dasharray', '3 3');
-      circle.setAttribute('class', 'svg-mount-circle');
-      circle.setAttribute('data-mount', k);
+    // 6. Update Visual Canvas and interactive SVG
+    updateCanvasView(activeView);
+    renderInteractiveSVG();
 
-      circle.addEventListener('mouseenter', (e) => {
-        showCanvasTooltip(`<strong>${v.name}</strong><br>${v.meaning}`, e);
-        circle.setAttribute('stroke', '#fde68a');
-        circle.setAttribute('fill', 'rgba(245, 158, 11, 0.25)');
-      });
-
-      circle.addEventListener('mouseleave', () => {
-        hideCanvasTooltip();
-        circle.setAttribute('stroke', 'rgba(168, 85, 247, 0.55)');
-        circle.setAttribute('fill', 'rgba(168, 85, 247, 0.12)');
-      });
-
-      svgMountsGroup.appendChild(circle);
-    }
+    // Smooth scroll down to results
+    resultsDashboard.scrollIntoView({ behavior: 'smooth' });
   }
 
-  function handleLineHover(lineKey, e) {
-    // 1. Dim other lines on SVG
-    document.querySelectorAll('.svg-line-path').forEach(p => {
-      if (p.getAttribute('data-line') === lineKey) {
-        p.classList.add('highlighted');
-      } else {
-        p.classList.add('dimmed');
-      }
-    });
-
-    // 2. Highlight matching reading card
-    const card = document.getElementById(`card-line-${lineKey}`);
-    if (card) {
-      card.classList.add('card-glow-active');
-      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    // 3. Show tooltip
-    const lineTitles = {
-      heart: 'Heart Line (Emotions & Love)',
-      head: 'Head Line (Intellect & Wisdom)',
-      life: 'Life Line (Vitality & Path)',
-      fate: 'Fate Line (Destiny & Vocation)'
-    };
-    showCanvasTooltip(`✦ <strong>${lineTitles[lineKey] || lineKey}</strong>`, e);
+  function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = text;
   }
 
-  function handleLineLeave(lineKey) {
-    document.querySelectorAll('.svg-line-path').forEach(p => {
-      p.classList.remove('highlighted', 'dimmed');
-    });
-
-    const card = document.getElementById(`card-line-${lineKey}`);
-    if (card) card.classList.remove('card-glow-active');
-
-    hideCanvasTooltip();
-  }
-
-  // Bi-directional card hover: hovering a card highlights line on SVG
-  document.querySelectorAll('.interactive-reading-card').forEach(card => {
-    const lineKey = card.getAttribute('data-line');
-    card.addEventListener('mouseenter', () => {
-      document.querySelectorAll('.svg-line-path').forEach(p => {
-        if (p.getAttribute('data-line') === lineKey) {
-          p.classList.add('highlighted');
-        } else {
-          p.classList.add('dimmed');
-        }
-      });
-    });
-
-    card.addEventListener('mouseleave', () => {
-      document.querySelectorAll('.svg-line-path').forEach(p => {
-        p.classList.remove('highlighted', 'dimmed');
-      });
-    });
-  });
-
-  function showCanvasTooltip(html, e) {
-    if (!canvasTooltip) return;
-    canvasTooltip.innerHTML = html;
-    canvasTooltip.style.display = 'block';
-
-    const rect = canvasViewport.getBoundingClientRect();
-    const x = e.clientX - rect.left + 14;
-    const y = e.clientY - rect.top + 14;
-    canvasTooltip.style.left = `${x}px`;
-    canvasTooltip.style.top = `${y}px`;
-  }
-
-  function hideCanvasTooltip() {
-    if (canvasTooltip) canvasTooltip.style.display = 'none';
+  function setMetricBar(name, val) {
+    const bar = document.getElementById(`bar-${name}`);
+    const valEl = document.getElementById(`val-${name}`);
+    if (bar) bar.style.width = `${val}%`;
+    if (valEl) valEl.innerText = val;
   }
 
   // =========================================================================
-  // 8. View Switcher (Overlay, Ridge Map, Blueprint, Raw ROI, Split Slider)
+  // 7. Interactive Vision Studio: Canvas & View Modes
   // =========================================================================
-  document.querySelectorAll('.view-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const viewMode = btn.getAttribute('data-view');
-      switchStudioView(viewMode);
+  function updateCanvasView(viewName) {
+    activeView = viewName;
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-view') === viewName);
     });
-  });
 
-  function switchStudioView(mode) {
-    activeView = mode;
-    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-    const activeBtn = document.querySelector(`.view-btn[data-view="${mode}"]`);
-    if (activeBtn) activeBtn.classList.add('active');
-
-    if (!currentAnalysis) return;
+    if (!currentAnalysis || !currentAnalysis.visualizations) return;
     const visuals = currentAnalysis.visualizations;
 
-    if (mode === 'split') {
+    if (viewName === 'split') {
       singleViewContainer.style.display = 'none';
       splitSliderContainer.style.display = 'block';
       svgOverlay.style.display = 'none';
-      studioModeLabel.innerText = 'Mode: Before & After Crease Split Slider (Drag knob)';
+
+      splitBeforeImg.src = visuals.roi;
+      splitAfterImg.src = visuals.ridge_map;
+      updateSplitSliderPosition(splitPercent);
+      studioModeLabel.innerHTML = 'Mode: <strong>Before & After Crease Split Slider</strong> (Drag knob)';
     } else {
       splitSliderContainer.style.display = 'none';
       singleViewContainer.style.display = 'block';
 
-      if (mode === 'overlay') {
+      if (viewName === 'overlay') {
         activeVisualImg.src = visuals.overlay;
         svgOverlay.style.display = 'block';
-        studioModeLabel.innerText = 'Mode: Full Overlay • Interactive SVG active';
-      } else if (mode === 'ridge') {
+        studioModeLabel.innerHTML = 'Mode: <strong>Full Overlay</strong> &bull; Interactive SVG active';
+      } else if (viewName === 'ridge') {
         activeVisualImg.src = visuals.ridge_map;
         svgOverlay.style.display = 'none';
-        studioModeLabel.innerText = 'Mode: Multi-Scale Frangi Crease Heatmap';
-      } else if (mode === 'blueprint') {
+        studioModeLabel.innerHTML = 'Mode: <strong>Multi-Scale Frangi Crease Heatmap</strong>';
+      } else if (viewName === 'blueprint') {
         activeVisualImg.src = visuals.blueprint;
         svgOverlay.style.display = 'none';
-        studioModeLabel.innerText = 'Mode: Celestial Chiromancy Blueprint';
-      } else if (mode === 'roi') {
+        studioModeLabel.innerHTML = 'Mode: <strong>Celestial Chiromancy Blueprint</strong>';
+      } else if (viewName === 'roi') {
         activeVisualImg.src = visuals.roi;
-        svgOverlay.style.display = 'none';
-        studioModeLabel.innerText = 'Mode: Raw Palm Region of Interest (ROI)';
+        svgOverlay.style.display = 'block';
+        studioModeLabel.innerHTML = 'Mode: <strong>Raw Palm ROI</strong> &bull; Segmented palm area';
       }
     }
   }
 
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      updateCanvasView(btn.getAttribute('data-view'));
+    });
+  });
+
   // =========================================================================
-  // 9. Split Comparison Slider Dragging
+  // 8. Split Comparison Slider Dragging
   // =========================================================================
-  function initSplitSlider() {
-    splitPercent = 50;
-    updateSplitPosition();
-
-    splitDividerHandle.addEventListener('mousedown', startSplitDrag);
-    splitDividerHandle.addEventListener('touchstart', startSplitDrag, { passive: true });
-
-    window.addEventListener('mousemove', onSplitDrag);
-    window.addEventListener('touchmove', onSplitDrag, { passive: true });
-
-    window.addEventListener('mouseup', stopSplitDrag);
-    window.addEventListener('touchend', stopSplitDrag);
+  function updateSplitSliderPosition(percent) {
+    splitPercent = Math.max(0, Math.min(100, percent));
+    if (splitOverlayWrapper) splitOverlayWrapper.style.width = `${splitPercent}%`;
+    if (splitDividerHandle) splitDividerHandle.style.left = `${splitPercent}%`;
   }
 
-  function startSplitDrag(e) {
-    isDraggingSplit = true;
-  }
-
-  function onSplitDrag(e) {
-    if (!isDraggingSplit) return;
+  function handleSplitDrag(clientX) {
     const rect = splitSliderContainer.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    let offset = clientX - rect.left;
-    offset = Math.max(0, Math.min(offset, rect.width));
-    splitPercent = (offset / rect.width) * 100;
-    updateSplitPosition();
+    const x = clientX - rect.left;
+    const percent = (x / rect.width) * 100;
+    updateSplitSliderPosition(percent);
   }
 
-  function stopSplitDrag() {
+  splitSliderContainer.addEventListener('mousedown', (e) => {
+    if (activeView !== 'split') return;
+    isDraggingSplit = true;
+    handleSplitDrag(e.clientX);
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDraggingSplit) return;
+    handleSplitDrag(e.clientX);
+  });
+
+  window.addEventListener('mouseup', () => {
     isDraggingSplit = false;
-  }
+  });
 
-  function updateSplitPosition() {
-    if (!splitOverlayWrapper || !splitDividerHandle) return;
-    splitOverlayWrapper.style.width = `${splitPercent}%`;
-    splitDividerHandle.style.left = `${splitPercent}%`;
-  }
+  // Touch support for split slider
+  splitSliderContainer.addEventListener('touchstart', (e) => {
+    if (activeView !== 'split') return;
+    isDraggingSplit = true;
+    if (e.touches && e.touches[0]) handleSplitDrag(e.touches[0].clientX);
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isDraggingSplit) return;
+    if (e.touches && e.touches[0]) handleSplitDrag(e.touches[0].clientX);
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    isDraggingSplit = false;
+  });
 
   // =========================================================================
-  // 10. Zoom & Pan Viewport
+  // 9. Zoom & Pan Engine
   // =========================================================================
   function updateTransform() {
     canvasTransformWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
     zoomLevelText.innerText = `${Math.round(zoomLevel * 100)}%`;
   }
 
-  function resetZoomPan() {
+  function zoomIn() {
+    if (zoomLevel < 3.0) {
+      zoomLevel = Math.min(3.0, +(zoomLevel + 0.25).toFixed(2));
+      updateTransform();
+    }
+  }
+
+  function zoomOut() {
+    if (zoomLevel > 1.0) {
+      zoomLevel = Math.max(1.0, +(zoomLevel - 0.25).toFixed(2));
+      if (zoomLevel === 1.0) {
+        panX = 0;
+        panY = 0;
+      }
+      updateTransform();
+    }
+  }
+
+  function resetZoomAndPan() {
     zoomLevel = 1.0;
     panX = 0;
     panY = 0;
     updateTransform();
   }
 
-  btnZoomIn.addEventListener('click', () => {
-    zoomLevel = Math.min(3.0, zoomLevel + 0.25);
-    updateTransform();
-  });
+  btnZoomIn.addEventListener('click', zoomIn);
+  btnZoomOut.addEventListener('click', zoomOut);
+  btnZoomReset.addEventListener('click', resetZoomAndPan);
 
-  btnZoomOut.addEventListener('click', () => {
-    zoomLevel = Math.max(0.75, zoomLevel - 0.25);
-    updateTransform();
-  });
+  // Mouse Wheel Zooming
+  canvasViewport.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      zoomIn();
+    } else {
+      zoomOut();
+    }
+  }, { passive: false });
 
-  btnZoomReset.addEventListener('click', resetZoomPan);
-
-  // Pan with mouse dragging when zoomed in
+  // Pan / Dragging
   canvasViewport.addEventListener('mousedown', (e) => {
-    if (e.target.closest('#split-divider-handle')) return;
-    isPanning = true;
-    startPanX = e.clientX - panX;
-    startPanY = e.clientY - panY;
-    canvasViewport.style.cursor = 'grabbing';
+    if (activeView === 'split' || isDraggingSplit) return;
+    if (zoomLevel > 1.0) {
+      isPanning = true;
+      startPanX = e.clientX - panX;
+      startPanY = e.clientY - panY;
+      canvasViewport.classList.add('panning');
+    }
   });
 
   window.addEventListener('mousemove', (e) => {
@@ -955,38 +793,183 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('mouseup', () => {
     if (isPanning) {
       isPanning = false;
-      canvasViewport.style.cursor = 'grab';
+      canvasViewport.classList.remove('panning');
     }
   });
 
   // =========================================================================
-  // 11. Layer Visibility Filters
+  // 10. Interactive SVG Overlays & Bi-Directional Hover Inspector
   // =========================================================================
-  const toggleHeart = document.getElementById('toggle-heart');
-  const toggleHead = document.getElementById('toggle-head');
-  const toggleLife = document.getElementById('toggle-life');
-  const toggleFate = document.getElementById('toggle-fate');
-  const toggleMounts = document.getElementById('toggle-mounts');
+  function renderInteractiveSVG() {
+    svgMountsGroup.innerHTML = '';
+    svgLinesGroup.innerHTML = '';
 
-  function updateLayerVisibility() {
-    const heartPath = document.querySelector('.path-heart');
-    const headPath = document.querySelector('.path-head');
-    const lifePath = document.querySelector('.path-life');
-    const fatePath = document.querySelector('.path-fate');
+    if (!currentAnalysis) return;
+    const lines = currentAnalysis.lines || {};
+    const mounts = currentAnalysis.mounts || {};
 
-    if (heartPath) heartPath.style.display = toggleHeart.checked ? 'block' : 'none';
-    if (headPath) headPath.style.display = toggleHead.checked ? 'block' : 'none';
-    if (lifePath) lifePath.style.display = toggleLife.checked ? 'block' : 'none';
-    if (fatePath) fatePath.style.display = toggleFate.checked ? 'block' : 'none';
-    if (svgMountsGroup) svgMountsGroup.style.display = toggleMounts.checked ? 'block' : 'none';
+    // 1. Draw Planetary Mount Circles
+    for (const [key, mount] of Object.entries(mounts)) {
+      const cx = mount.pos[0];
+      const cy = mount.pos[1];
+      const r = mount.radius;
+
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', cx);
+      circle.setAttribute('cy', cy);
+      circle.setAttribute('r', r);
+      circle.setAttribute('fill', 'rgba(168, 85, 247, 0.16)');
+      circle.setAttribute('stroke', 'rgba(192, 132, 252, 0.7)');
+      circle.setAttribute('stroke-width', '1.5');
+      circle.setAttribute('stroke-dasharray', '3 3');
+      circle.classList.add('svg-mount-circle');
+      circle.dataset.layer = 'mounts';
+
+      circle.addEventListener('mouseenter', (e) => {
+        showTooltip(e, `<strong>${mount.name}</strong><br><span style="color:#c084fc;">Domain:</span> ${mount.meaning}`);
+      });
+      circle.addEventListener('mousemove', moveTooltip);
+      circle.addEventListener('mouseleave', hideTooltip);
+
+      svgMountsGroup.appendChild(circle);
+    }
+
+    // 2. Draw Major Lines
+    for (const [lineName, lineData] of Object.entries(lines)) {
+      const pts = lineData.points;
+      if (!pts || pts.length < 2) continue;
+
+      let d = `M ${pts[0][0]} ${pts[0][1]}`;
+      for (let i = 1; i < pts.length; i++) {
+        d += ` L ${pts[i][0]} ${pts[i][1]}`;
+      }
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', lineColors[lineName] || '#ffffff');
+      path.setAttribute('stroke-width', '4');
+      path.classList.add('svg-interactive-line');
+      
+      const lineKey = lineName.toLowerCase();
+      path.dataset.layer = lineKey;
+      path.id = `svg-path-${lineKey}`;
+
+      const metrics = lineData.metrics || {};
+      const tooltipText = `
+        <strong style="color:${lineColors[lineName]};">${lineName} Line</strong><br>
+        Clarity: ${metrics.clarity || 'Defined'}<br>
+        Curvature: ${metrics.curvature || '1.10'}<br>
+        Depth Score: ${metrics.depth_score || 50}/100
+      `;
+
+      // Line Hover Events (Bi-directional)
+      path.addEventListener('mouseenter', (e) => {
+        highlightLine(lineKey);
+        showTooltip(e, tooltipText);
+      });
+      path.addEventListener('mousemove', moveTooltip);
+      path.addEventListener('mouseleave', () => {
+        resetLineHighlights();
+        hideTooltip();
+      });
+
+      svgLinesGroup.appendChild(path);
+    }
+
+    applyLayerToggles();
   }
 
-  [toggleHeart, toggleHead, toggleLife, toggleFate, toggleMounts].forEach(toggle => {
-    if (toggle) toggle.addEventListener('change', updateLayerVisibility);
+  // Bi-directional Highlights
+  function highlightLine(lineKey) {
+    const allPaths = svgLinesGroup.querySelectorAll('.svg-interactive-line');
+    allPaths.forEach(p => {
+      if (p.dataset.layer === lineKey) {
+        p.classList.add('line-highlighted');
+        p.classList.remove('line-dimmed');
+      } else {
+        p.classList.add('line-dimmed');
+        p.classList.remove('line-highlighted');
+      }
+    });
+
+    document.querySelectorAll('.interactive-reading-card').forEach(card => {
+      if (card.dataset.line === lineKey) {
+        card.classList.add('card-highlighted');
+        card.classList.remove('card-dimmed');
+      } else {
+        card.classList.add('card-dimmed');
+        card.classList.remove('card-highlighted');
+      }
+    });
+  }
+
+  function resetLineHighlights() {
+    svgLinesGroup.querySelectorAll('.svg-interactive-line').forEach(p => {
+      p.classList.remove('line-highlighted', 'line-dimmed');
+    });
+    document.querySelectorAll('.interactive-reading-card').forEach(card => {
+      card.classList.remove('card-highlighted', 'card-dimmed');
+    });
+  }
+
+  // Hook up hover listeners on Reading Cards
+  document.querySelectorAll('.interactive-reading-card').forEach(card => {
+    const lineKey = card.dataset.line;
+    card.addEventListener('mouseenter', () => {
+      highlightLine(lineKey);
+    });
+    card.addEventListener('mouseleave', () => {
+      resetLineHighlights();
+    });
   });
 
+  // Layer Toggles
+  function applyLayerToggles() {
+    const heart = layerToggles.heart?.checked;
+    const head = layerToggles.head?.checked;
+    const life = layerToggles.life?.checked;
+    const fate = layerToggles.fate?.checked;
+    const mounts = layerToggles.mounts?.checked;
+
+    const pathHeart = document.getElementById('svg-path-heart');
+    const pathHead = document.getElementById('svg-path-head');
+    const pathLife = document.getElementById('svg-path-life');
+    const pathFate = document.getElementById('svg-path-fate');
+
+    if (pathHeart) pathHeart.style.display = heart ? 'block' : 'none';
+    if (pathHead) pathHead.style.display = head ? 'block' : 'none';
+    if (pathLife) pathLife.style.display = life ? 'block' : 'none';
+    if (pathFate) pathFate.style.display = fate ? 'block' : 'none';
+    if (svgMountsGroup) svgMountsGroup.style.display = mounts ? 'block' : 'none';
+  }
+
+  Object.values(layerToggles).forEach(toggle => {
+    if (toggle) toggle.addEventListener('change', applyLayerToggles);
+  });
+
+  // Canvas Tooltip Helpers
+  function showTooltip(e, html) {
+    if (!canvasTooltip) return;
+    canvasTooltip.innerHTML = html;
+    canvasTooltip.style.display = 'block';
+    moveTooltip(e);
+  }
+
+  function moveTooltip(e) {
+    if (!canvasTooltip) return;
+    const rect = canvasViewport.getBoundingClientRect();
+    const x = e.clientX - rect.left + 15;
+    const y = e.clientY - rect.top + 15;
+    canvasTooltip.style.left = `${x}px`;
+    canvasTooltip.style.top = `${y}px`;
+  }
+
+  function hideTooltip() {
+    if (canvasTooltip) canvasTooltip.style.display = 'none';
+  }
+
   // =========================================================================
-  // 12. Print & Reset Actions
+  // 11. Print & Reset Actions
   // =========================================================================
   if (btnPrintReport) {
     btnPrintReport.addEventListener('click', () => {
