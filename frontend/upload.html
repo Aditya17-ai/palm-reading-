@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Palmistra AI | Celestial Palm Reading & Vision Chirology Studio</title>
-  <meta name="description" content="Ultra-premium AI palm reading studio powered by computer vision, multi-scale Frangi crease detection, and authentic chiromancy interpretation.">
+  <title>Palmistra AI | Upload Palm Photo & Vision Chirology Studio</title>
+  <meta name="description" content="Upload high-resolution palm photography for ultra-precision computer vision crease extraction, multi-scale Frangi filtering, and personalized celestial chiromancy reading.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,7 +23,7 @@
   <!-- Navigation Header -->
   <header class="app-header">
     <div class="header-content">
-      <div class="brand-badge">
+      <a href="index.html" class="brand-badge" title="Return to Palmistra AI Home">
         <div class="celestial-orb-wrapper">
           <span class="celestial-orb"></span>
           <span class="orb-ring"></span>
@@ -32,22 +32,22 @@
           <span class="brand-title">PALMISTRA AI</span>
           <span class="brand-subtitle">Vision Chirology Studio</span>
         </div>
-      </div>
+      </a>
       <div class="header-status-pill">
         <span class="status-pulse-dot"></span>
         <span>Frangi Hessian CV Engine Active</span>
       </div>
       <div class="header-actions">
-        <a href="index.html" class="nav-link active">Live Camera Studio</a>
-        <a href="upload.html" class="nav-link">Upload Photo</a>
-        <button id="btn-header-demo" class="btn-ghost">
+        <a href="index.html" class="nav-link">Live Camera Studio</a>
+        <a href="upload.html" class="nav-link active">Upload Photo</a>
+        <button id="btn-quick-sample" class="btn-ghost">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          Quick Demo
+          Quick Preset
         </button>
-        <button id="btn-open-camera" class="btn-secondary">
+        <a href="index.html" class="btn-secondary">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
           Live Camera
-        </button>
+        </a>
       </div>
     </div>
   </header>
@@ -55,202 +55,183 @@
   <!-- Main Container -->
   <main class="main-container">
 
-    <!-- Hero Intro Section -->
+    <!-- Upload Hero Section -->
     <section class="hero-section">
       <div class="hero-pill">
         <span class="pill-sparkle">✦</span>
-        <span>Computer Vision &bull; Multi-Scale Ridge Extraction &bull; Chirology AI</span>
+        <span>High-Precision Photography &bull; Micro-Crease Ridge Extraction &bull; Chirology AI</span>
       </div>
-      <h1 class="hero-heading">Unveil the Celestial Blueprint of Your Palm</h1>
+      <h1 class="hero-heading">Upload Your Palm Photograph</h1>
       <p class="hero-description">
-        Experience high-precision palmistry powered by computer vision. Our model isolates the palm Region of Interest (ROI), extracts fine micro-creases using multi-scale Frangi Hessian ridge filtering, maps the 4 major destiny lines, and synthesizes your personalized chiromancy report.
+        Provide a clear still photo of your hand to perform an in-depth computer vision analysis. Our model detects the hand boundary, isolates the palm Region of Interest (ROI), extracts fine micro-creases using multi-scale Frangi Hessian ridge filtering, and synthesizes your destiny lines.
       </p>
 
-      <div class="hero-quick-actions">
-        <button id="hero-btn-demo" class="btn-primary highlight">
-          <span class="btn-shimmer"></span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          Explore Live Demo Reading
-        </button>
-        <a href="upload.html" class="btn-secondary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          Upload Your Palm Photo
-        </a>
-      </div>
-
-      <!-- Feature Highlights -->
-      <div class="hero-feature-ribbon">
-        <div class="ribbon-item">
-          <span class="ribbon-icon">🔬</span>
-          <div>
-            <div class="ribbon-title">Frangi Ridge Filter</div>
-            <div class="ribbon-sub">Eigenvalue vessel extraction</div>
+      <!-- Photography Guidelines Grid -->
+      <div class="guidelines-grid">
+        <div class="guideline-card">
+          <div class="guideline-header">
+            <span class="guideline-icon">☀️</span>
+            <span class="guideline-title">Diffused Lighting</span>
           </div>
+          <p class="guideline-text">Use bright, even, natural daylight. Avoid harsh shadows cast across the palm lines.</p>
         </div>
-        <div class="ribbon-item">
-          <span class="ribbon-icon">✨</span>
-          <div>
-            <div class="ribbon-title">4 Major Destiny Lines</div>
-            <div class="ribbon-sub">Life, Head, Heart & Fate</div>
+        <div class="guideline-card">
+          <div class="guideline-header">
+            <span class="guideline-icon">✋</span>
+            <span class="guideline-title">Palm Flat & Open</span>
           </div>
+          <p class="guideline-text">Keep your palm flat with fingers relaxed and gently spread. Avoid cupping or bending.</p>
         </div>
-        <div class="ribbon-item">
-          <span class="ribbon-icon">🪐</span>
-          <div>
-            <div class="ribbon-title">7 Chirological Mounts</div>
-            <div class="ribbon-sub">Planetary energy centers</div>
+        <div class="guideline-card">
+          <div class="guideline-header">
+            <span class="guideline-icon">📐</span>
+            <span class="guideline-title">Parallel Angle</span>
           </div>
+          <p class="guideline-text">Hold the camera directly above and parallel to the palm to prevent perspective distortion.</p>
         </div>
-        <div class="ribbon-item">
-          <span class="ribbon-icon">🔮</span>
-          <div>
-            <div class="ribbon-title">Elemental Archetype</div>
-            <div class="ribbon-sub">Earth, Air, Fire, Water</div>
+        <div class="guideline-card">
+          <div class="guideline-header">
+            <span class="guideline-icon">🔍</span>
+            <span class="guideline-title">Sharp Crease Focus</span>
           </div>
+          <p class="guideline-text">Ensure sharp focus on the major skin creases (Life, Head, Heart, and Fate lines).</p>
         </div>
       </div>
     </section>
 
-    <!-- Interactive Input Hub -->
-    <section class="input-hub" id="input-section">
+    <!-- Upload Hub Section -->
+    <section class="input-hub" id="upload-hub-section">
       <div class="input-hub-header">
-        <h2 class="section-title">Select or Capture a Palm</h2>
-        <p class="section-subtitle">Choose an upload method or pick a calibrated archetype preset to begin the computer vision scan.</p>
+        <h2 class="section-title">Select Palm Image</h2>
+        <p class="section-subtitle">Drag and drop, browse your device, or paste directly from clipboard.</p>
       </div>
 
-      <div class="input-tabs">
-        <button class="tab-btn active" id="tab-upload">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          Upload Photo
-        </button>
-        <button class="tab-btn" id="tab-camera">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-          Live Camera Guide
-        </button>
-        <button class="tab-btn" id="tab-samples">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 16 12 12 8"></polygon></svg>
-          Archetype Presets
-        </button>
-      </div>
+      <!-- State 1: Drop Zone (Idle) -->
+      <div class="drop-zone" id="upload-drop-zone">
+        <input type="file" id="upload-file-input" accept="image/png,image/jpeg,image/webp,image/jpg" class="file-hidden-input">
+        
+        <div class="drop-zone-idle" id="upload-idle-state">
+          <div class="drop-zone-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          </div>
+          <div class="drop-zone-title">Drag & Drop Your Palm Photo Here</div>
+          <div class="drop-zone-subtitle">or click to browse your files (PNG, JPG, WEBP)</div>
+          <div class="drop-zone-hint">
+            <span>✦ Recommended resolution: 800x800 or higher</span>
+          </div>
 
-      <!-- Upload Panel -->
-      <div class="tab-panel active" id="panel-upload">
-        <div class="drop-zone" id="drop-zone">
-          <input type="file" id="file-input" accept="image/*" class="file-hidden-input">
-          
-          <div class="drop-zone-idle" id="drop-zone-idle">
-            <div class="drop-zone-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-            </div>
-            <div class="drop-zone-title">Drag & Drop Your Palm Photo Here</div>
-            <div class="drop-zone-subtitle">or click to browse from device (JPEG, PNG, WEBP)</div>
-            <div class="drop-zone-hint">
-              <span>✦ Open fingers flat &bull; Good natural lighting &bull; Palm perpendicular to lens</span>
-            </div>
-            <div>
-              <a href="upload.html" style="color: #c4b5fd; text-decoration: underline; font-size: 0.82rem; margin-top: 10px; display: inline-block;">✦ Need rotation or orientation adjustments? Open Dedicated Photo Studio &rarr;</a>
+          <div class="upload-alt-actions">
+            <button type="button" id="btn-browse-file" class="btn-secondary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              Browse Files
+            </button>
+            <button type="button" id="btn-paste-clipboard" class="btn-ghost">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+              Paste from Clipboard
+            </button>
+            <div class="paste-hint-pill">
+              <span>Shortcut:</span> <span class="kbd-badge">Ctrl + V</span>
             </div>
           </div>
 
-          <!-- Preview state when file is chosen -->
-          <div class="drop-zone-preview" id="drop-zone-preview" style="display:none;">
-            <div class="preview-img-wrapper">
-              <img id="preview-img" src="" alt="Selected Palm Preview">
+          <!-- Preset archetypes fast selection -->
+          <div class="preset-quick-strip">
+            <span class="preset-quick-label">Or test immediately with a calibrated archetype:</span>
+            <button type="button" class="preset-chip-btn" data-sample="earth">
+              🌱 Earth Archetype
+            </button>
+            <button type="button" class="preset-chip-btn" data-sample="air">
+              💨 Air Archetype
+            </button>
+            <button type="button" class="preset-chip-btn" data-sample="fire">
+              🔥 Fire Archetype
+            </button>
+          </div>
+        </div>
+
+        <!-- State 2: Pre-Analysis Preview & Adjustment Workspace -->
+        <div class="pre-analysis-container" id="upload-preview-state" style="display:none;" onclick="event.stopPropagation();">
+          <div class="pre-analysis-grid">
+            
+            <!-- Left: Interactive Canvas with Transforms Applied -->
+            <div class="pre-analysis-preview-box">
+              <canvas id="pre-analysis-canvas" width="400" height="400"></canvas>
             </div>
-            <div class="preview-details">
-              <div class="preview-filename" id="preview-filename">palm-photo.jpg</div>
-              <div class="preview-actions">
-                <button type="button" id="btn-analyze-preview" class="btn-primary highlight">
+
+            <!-- Right: Adjustments & Chirology Preferences -->
+            <div class="pre-analysis-controls">
+              
+              <!-- File Info Strip -->
+              <div class="pre-analysis-meta-row">
+                <div class="image-meta-pill">
+                  <span>File:</span> <strong id="meta-filename">palm.jpg</strong>
+                </div>
+                <div class="image-meta-pill">
+                  <span>Dimensions:</span> <strong id="meta-dims">-- x --</strong>
+                </div>
+                <div class="image-meta-pill">
+                  <span>Size:</span> <strong id="meta-filesize">-- KB</strong>
+                </div>
+              </div>
+
+              <!-- Orientation & Transform Controls -->
+              <div>
+                <div class="hand-selection-label" style="margin-bottom: 8px;">Image Orientation Adjustment</div>
+                <div class="transform-toolbar">
+                  <button type="button" class="transform-btn" id="btn-rotate-left" title="Rotate 90 degrees counter-clockwise">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38L2.5 8"/></svg>
+                    Rotate Left
+                  </button>
+                  <button type="button" class="transform-btn" id="btn-rotate-right" title="Rotate 90 degrees clockwise">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38L21.5 8"/></svg>
+                    Rotate Right
+                  </button>
+                  <button type="button" class="transform-btn" id="btn-flip-h" title="Flip horizontally for mirror correction">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 8 21 12 17 16"></polyline><line x1="3" y1="12" x2="21" y2="12"></line><polyline points="7 16 3 12 7 8"></polyline></svg>
+                    Flip Horizontal
+                  </button>
+                  <button type="button" class="transform-btn" id="btn-reset-transform" title="Reset image transformations">
+                    ⟲ Reset
+                  </button>
+                </div>
+              </div>
+
+              <!-- Chirological Hand Selection -->
+              <div class="hand-selection-box">
+                <span class="hand-selection-label">Chirological Hand Orientation</span>
+                <div class="hand-options">
+                  <div class="hand-choice-pill active" id="hand-pill-right" data-hand="right">
+                    <div class="hand-choice-title">
+                      <span>✋ Right Hand</span>
+                      <span class="pill-sparkle">✦</span>
+                    </div>
+                    <div class="hand-choice-desc">Active destiny, conscious willpower, career direction & current life manifestation.</div>
+                  </div>
+                  <div class="hand-choice-pill" id="hand-pill-left" data-hand="left">
+                    <div class="hand-choice-title">
+                      <span>🤚 Left Hand</span>
+                    </div>
+                    <div class="hand-choice-desc">Innate nature, subconscious potential, intuitive gifts & inherited karmic blueprint.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Main Execute CTA -->
+              <div class="pre-analysis-actions">
+                <button type="button" id="btn-execute-analysis" class="btn-primary highlight">
                   <span class="btn-shimmer"></span>
-                  ✦ Analyze Palm Now
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  ✦ Initiate Multi-Scale Frangi Scan & Reading
                 </button>
-                <button type="button" id="btn-change-preview" class="btn-ghost">
+                <button type="button" id="btn-reset-upload" class="btn-ghost">
                   Choose Different Photo
                 </button>
               </div>
+
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Camera Panel -->
-      <div class="tab-panel" id="panel-camera">
-        <div class="camera-viewport-container">
-          <video id="camera-feed" autoplay playsinline muted></video>
-          
-          <!-- Palm Alignment Overlay Guide -->
-          <div class="palm-guide-overlay">
-            <svg class="hand-silhouette-svg" viewBox="0 0 400 500">
-              <defs>
-                <linearGradient id="guideGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.8"/>
-                  <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.8"/>
-                </linearGradient>
-              </defs>
-              <path d="M 200 450 C 170 450, 160 380, 160 350 C 130 350, 100 330, 90 270 C 80 210, 110 180, 130 190 C 130 150, 140 100, 165 95 C 185 90, 190 140, 195 160 C 200 130, 205 70, 225 65 C 245 60, 250 120, 250 160 C 260 130, 275 85, 295 90 C 315 95, 310 150, 305 185 C 325 180, 345 190, 345 230 C 345 270, 320 350, 240 350 C 240 380, 230 450, 200 450 Z" 
-                    fill="none" stroke="url(#guideGradient)" stroke-width="2.5" stroke-dasharray="8 6"/>
-              <circle cx="200" cy="270" r="48" fill="none" stroke="rgba(245, 158, 11, 0.6)" stroke-width="1.5" stroke-dasharray="4 4"/>
-              <text x="200" y="275" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="12" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600">Align Palm Center</text>
-            </svg>
-          </div>
-
-          <div class="camera-controls">
-            <button id="btn-start-camera" class="btn-primary">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-              Start Camera
-            </button>
-            <button id="btn-capture-photo" class="btn-primary highlight" style="display:none;">
-              <span class="btn-shimmer"></span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
-              Capture & Read Palm
-            </button>
-            <button id="btn-stop-camera" class="btn-ghost" style="display:none;">Stop</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Preset Archetypes Panel -->
-      <div class="tab-panel" id="panel-samples">
-        <div class="samples-grid" id="samples-section">
-          <!-- Earth Sample Card -->
-          <div class="sample-card" data-sample="earth">
-            <div class="sample-thumbnail">
-              <img src="/samples/sample_earth_palm.png" alt="Earth Palm Archetype" loading="lazy">
-              <span class="element-tag tag-earth">🌱 Earth</span>
-            </div>
-            <div class="sample-details">
-              <h4>Earth Hand Archetype</h4>
-              <p>Square palm with deep grounding lines, steady Life trajectory, and pragmatic stability.</p>
-              <button class="btn-sample-select">Analyze Archetype ✦</button>
-            </div>
-          </div>
-
-          <!-- Air Sample Card -->
-          <div class="sample-card" data-sample="air">
-            <div class="sample-thumbnail">
-              <img src="/samples/sample_air_palm.png" alt="Air Palm Archetype" loading="lazy">
-              <span class="element-tag tag-air">💨 Air</span>
-            </div>
-            <div class="sample-details">
-              <h4>Air Hand Archetype</h4>
-              <p>Balanced palm with an imaginative sloping Head line, gifted communicator, and sharp mental clarity.</p>
-              <button class="btn-sample-select">Analyze Archetype ✦</button>
-            </div>
-          </div>
-
-          <!-- Fire Sample Card -->
-          <div class="sample-card" data-sample="fire">
-            <div class="sample-thumbnail">
-              <img src="/samples/sample_fire_palm.png" alt="Fire Palm Archetype" loading="lazy">
-              <span class="element-tag tag-fire">🔥 Fire</span>
-            </div>
-            <div class="sample-details">
-              <h4>Fire Hand Archetype</h4>
-              <p>Dynamic proportion, passionate Mount of Venus vitality, ambitious Fate trajectory, and bold leadership.</p>
-              <button class="btn-sample-select">Analyze Archetype ✦</button>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -420,15 +401,12 @@
 
               <!-- Interactive Split Comparison Slider Container (Active in 'split' mode) -->
               <div class="split-slider-container" id="split-slider-container" style="display:none;">
-                <!-- Background Image (Raw ROI) -->
                 <img id="split-before-img" class="split-img split-before" src="" alt="Original Palm Photo">
                 
-                <!-- Foreground Image (Ridge Heatmap / Overlay) clipped by slider -->
                 <div class="split-overlay-wrapper" id="split-overlay-wrapper">
                   <img id="split-after-img" class="split-img split-after" src="" alt="Extracted Crease Heatmap">
                 </div>
 
-                <!-- Draggable Divider Line & Handle -->
                 <div class="split-divider-handle" id="split-divider-handle">
                   <div class="divider-line"></div>
                   <div class="divider-knob">
@@ -437,7 +415,6 @@
                   </div>
                 </div>
 
-                <!-- Labels -->
                 <div class="split-badge badge-left">RAW PALM ROI</div>
                 <div class="split-badge badge-right">FRANGI CREASE MAP</div>
               </div>
@@ -594,7 +571,7 @@
         <button id="btn-read-another" class="btn-primary highlight">
           <span class="btn-shimmer"></span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-          Analyze Another Palm
+          Upload Another Palm Photo
         </button>
       </div>
 
@@ -616,6 +593,6 @@
     </div>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="upload.js"></script>
 </body>
 </html>
