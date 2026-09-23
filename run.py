@@ -28,7 +28,7 @@ def open_browser():
 def main():
     print("=" * 65)
     print("      PALMISTRA AI - CELESTIAL CHIROLOGY & PALM READING STUDIO     ")
-    print("=" * 65)
+    print("=" * 65 )
 
     ensure_samples()
 
