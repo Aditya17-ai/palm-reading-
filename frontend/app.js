@@ -430,6 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       cameraFeed.srcObject = cameraStream;
+      cameraFeed.classList.toggle('rear-cam', currentFacingMode === 'environment');
       btnStartCamera.style.display = 'none';
       btnCapturePhoto.style.display = 'inline-flex';
       btnStopCamera.style.display = 'inline-flex';
@@ -475,7 +476,10 @@ document.addEventListener('DOMContentLoaded', () => {
       cameraStream.getTracks().forEach(track => track.stop());
       cameraStream = null;
     }
-    if (cameraFeed) cameraFeed.srcObject = null;
+    if (cameraFeed) {
+      cameraFeed.srcObject = null;
+      cameraFeed.classList.remove('rear-cam');
+    }
 
     if (cameraDetectionCanvas) {
       const ctx = cameraDetectionCanvas.getContext('2d');
@@ -1289,6 +1293,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Touch Pan / Dragging for Mobile Phones
+  canvasViewport.addEventListener('touchstart', (e) => {
+    if (activeView === 'split' || isDraggingSplit) return;
+    if (zoomLevel > 1.0 && e.touches.length === 1) {
+      isPanning = true;
+      startPanX = e.touches[0].clientX - panX;
+      startPanY = e.touches[0].clientY - panY;
+      canvasViewport.classList.add('panning');
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isPanning || !e.touches || !e.touches[0]) return;
+    panX = e.touches[0].clientX - startPanX;
+    panY = e.touches[0].clientY - startPanY;
+    updateTransform();
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    if (isPanning) {
+      isPanning = false;
+      canvasViewport.classList.remove('panning');
+    }
+  });
+
   // =========================================================================
   // 12. Interactive SVG Overlays & Bi-Directional Hover Inspector
   // =========================================================================
@@ -1413,14 +1442,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Hook up hover listeners on the Reading Cards as well!
+  // Hook up hover & tap listeners on the Reading Cards for Desktop & Mobile!
+  let activeHighlightedLine = null;
   document.querySelectorAll('.interactive-reading-card').forEach(card => {
     const lineKey = card.dataset.line;
     card.addEventListener('mouseenter', () => {
       highlightLine(lineKey);
     });
     card.addEventListener('mouseleave', () => {
-      resetLineHighlights();
+      if (!activeHighlightedLine) {
+        resetLineHighlights();
+      } else {
+        highlightLine(activeHighlightedLine);
+      }
+    });
+    card.addEventListener('click', () => {
+      if (activeHighlightedLine === lineKey) {
+        activeHighlightedLine = null;
+        resetLineHighlights();
+      } else {
+        activeHighlightedLine = lineKey;
+        highlightLine(lineKey);
+      }
     });
   });
 

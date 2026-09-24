@@ -797,6 +797,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Touch Pan / Dragging for Mobile Phones
+  canvasViewport.addEventListener('touchstart', (e) => {
+    if (activeView === 'split' || isDraggingSplit) return;
+    if (zoomLevel > 1.0 && e.touches.length === 1) {
+      isPanning = true;
+      startPanX = e.touches[0].clientX - panX;
+      startPanY = e.touches[0].clientY - panY;
+      canvasViewport.classList.add('panning');
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isPanning || !e.touches || !e.touches[0]) return;
+    panX = e.touches[0].clientX - startPanX;
+    panY = e.touches[0].clientY - startPanY;
+    updateTransform();
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    if (isPanning) {
+      isPanning = false;
+      canvasViewport.classList.remove('panning');
+    }
+  });
+
   // =========================================================================
   // 10. Interactive SVG Overlays & Bi-Directional Hover Inspector
   // =========================================================================
@@ -912,14 +937,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Hook up hover listeners on Reading Cards
+  // Hook up hover & tap listeners on Reading Cards for Desktop & Mobile
+  let activeHighlightedLine = null;
   document.querySelectorAll('.interactive-reading-card').forEach(card => {
     const lineKey = card.dataset.line;
     card.addEventListener('mouseenter', () => {
       highlightLine(lineKey);
     });
     card.addEventListener('mouseleave', () => {
-      resetLineHighlights();
+      if (!activeHighlightedLine) {
+        resetLineHighlights();
+      } else {
+        highlightLine(activeHighlightedLine);
+      }
+    });
+    card.addEventListener('click', () => {
+      if (activeHighlightedLine === lineKey) {
+        activeHighlightedLine = null;
+        resetLineHighlights();
+      } else {
+        activeHighlightedLine = lineKey;
+        highlightLine(lineKey);
+      }
     });
   });
 
