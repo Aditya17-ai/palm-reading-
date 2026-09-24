@@ -47,6 +47,21 @@ class TestPalmAPI(unittest.TestCase):
         self.assertIn("scores", data["reading"])
         print(f"\nAPI Test Success! Overall Score: {data['reading']['scores']['overall_harmony']}/100")
 
+    def test_detect_live(self):
+        with open("samples/sample_earth_palm.png", "rb") as f:
+            b64_img = base64.b64encode(f.read()).decode("utf-8")
+
+        response = self.client.post("/api/detect-live", json={"image": f"data:image/png;base64,{b64_img}", "mirror": False})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["detected"])
+        self.assertIn("mounts", data)
+        self.assertIn("lines", data)
+        self.assertIn("alignment_score", data)
+        self.assertIn("scores", data)
+        print(f"Live Detection Test Success! Archetype: {data['hand_type']['type']}, Alignment: {data['alignment_score']}%")
+
 
 if __name__ == "__main__":
     unittest.main()
+

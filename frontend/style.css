@@ -684,17 +684,96 @@ body {
   gap: 12px;
 }
 
-/* 2. Camera Viewport */
+/* 2. Camera Viewport & Live Studio HUD */
+.camera-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 640px;
+  margin: 0 auto 12px auto;
+  padding: 6px 12px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(12px);
+}
+
+.camera-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.camera-status-indicator.active {
+  color: #34d399;
+}
+
+.camera-status-indicator .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: var(--transition);
+}
+
+.camera-status-indicator.active .status-dot {
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+}
+
+.toolbar-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip-toggle, .chip-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.chip-toggle:hover, .chip-action:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-color: var(--border-glass);
+}
+
+.chip-toggle.active {
+  background: rgba(139, 92, 246, 0.18);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #f1f5f9;
+}
+
+.chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
 .camera-viewport-container {
   position: relative;
   width: 100%;
-  max-width: 600px;
-  height: 420px;
+  max-width: 640px;
+  height: 460px;
   margin: 0 auto;
   border-radius: var(--radius-md);
   overflow: hidden;
   background: #000000;
   border: 2px solid var(--border-glass);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(139, 92, 246, 0.15);
 }
 
 #camera-feed {
@@ -704,6 +783,196 @@ body {
   transform: scaleX(-1); /* Mirror view for intuitive user experience */
 }
 
+#camera-detection-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Viewport Corners */
+.corner-bracket {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+  z-index: 12;
+  border-color: rgba(139, 92, 246, 0.6);
+  transition: var(--transition);
+}
+
+.corner-tl { top: 12px; left: 12px; border-top: 2px solid; border-left: 2px solid; }
+.corner-tr { top: 12px; right: 12px; border-top: 2px solid; border-right: 2px solid; }
+.corner-bl { bottom: 12px; left: 12px; border-bottom: 2px solid; border-left: 2px solid; }
+.corner-br { bottom: 12px; right: 12px; border-bottom: 2px solid; border-right: 2px solid; }
+
+.camera-viewport-container.aligned .corner-bracket {
+  border-color: #10b981;
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.8));
+}
+
+/* Viewport Top HUD */
+.camera-hud-top {
+  position: absolute;
+  top: 14px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.hud-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(8, 12, 20, 0.78);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(8px);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.hud-archetype-badge {
+  color: var(--text-gold);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.hud-alignment-gauge {
+  gap: 8px;
+}
+
+.gauge-bar-track {
+  width: 64px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.gauge-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #10b981);
+  border-radius: var(--radius-full);
+  transition: width 0.2s ease-out;
+}
+
+.hud-fps-badge {
+  color: #94a3b8;
+  font-family: monospace;
+}
+
+/* Auto-Capture Overlay */
+.auto-capture-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140px;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 18;
+  pointer-events: none;
+  background: rgba(8, 12, 20, 0.85);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  border-radius: 50%;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+  animation: pulseAutoCap 1s infinite alternate;
+}
+
+@keyframes pulseAutoCap {
+  0% { transform: translate(-50%, -50%) scale(0.96); box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+  100% { transform: translate(-50%, -50%) scale(1.04); box-shadow: 0 0 40px rgba(16, 185, 129, 0.6); }
+}
+
+.countdown-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.countdown-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 6;
+}
+
+.countdown-progress {
+  fill: none;
+  stroke: #10b981;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 326.7;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.15s linear;
+}
+
+.countdown-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  text-shadow: 0 0 15px rgba(16, 185, 129, 0.8);
+  line-height: 1;
+}
+
+.countdown-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #34d399;
+  margin-top: 4px;
+}
+
+/* Floating Bottom Guidance Banner */
+.camera-guidance-pill {
+  position: absolute;
+  bottom: 74px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(10, 15, 28, 0.88);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-full);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  z-index: 15;
+  pointer-events: none;
+  max-width: 90%;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.camera-guidance-pill.aligned {
+  border-color: rgba(16, 185, 129, 0.7);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.guidance-icon {
+  font-size: 1rem;
+}
+
+.guidance-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
 .palm-guide-overlay {
   position: absolute;
   inset: 0;
@@ -711,6 +980,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: opacity 0.4s ease;
 }
 
 .hand-silhouette-svg {
@@ -729,6 +999,179 @@ body {
   gap: 14px;
   z-index: 20;
 }
+
+/* Live Telemetry Drawer */
+.live-telemetry-drawer {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1.6fr;
+  gap: 14px;
+  max-width: 640px;
+  margin: 14px auto 0 auto;
+  animation: fadeInDrawer 0.4s ease-out;
+}
+
+@keyframes fadeInDrawer {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.telemetry-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  backdrop-filter: blur(14px);
+}
+
+.card-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.archetype-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.archetype-icon-lg {
+  font-size: 1.6rem;
+}
+
+.archetype-main h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.archetype-main p {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.archetype-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.metric-row strong {
+  color: var(--text-primary);
+}
+
+/* Estimated Harmony Card */
+.harmony-score-display {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  margin: 4px 0 8px 0;
+}
+
+.harmony-score-display .score-num {
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-family: var(--font-heading);
+  color: var(--text-gold);
+}
+
+.harmony-score-display .score-den {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.harmony-bar-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.harmony-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #f59e0b, #10b981);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.harmony-status-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #34d399;
+}
+
+/* Chirology Line Meters */
+.live-line-meters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.live-meter-item .meter-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.live-meter-item .meter-info strong {
+  color: var(--text-primary);
+}
+
+.line-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.dot-heart { background: var(--color-heart); }
+.dot-head { background: var(--color-head); }
+.dot-life { background: var(--color-life); }
+.dot-fate { background: var(--color-fate); }
+
+.mini-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.mini-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.25s ease;
+}
+
+.fill-heart { background: var(--color-heart); }
+.fill-head { background: var(--color-head); }
+.fill-life { background: var(--color-life); }
+.fill-fate { background: var(--color-fate); }
+
+@media (max-width: 680px) {
+  .live-telemetry-drawer {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 /* 3. Preset Archetype Cards */
 .samples-grid {

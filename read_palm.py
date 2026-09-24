@@ -141,11 +141,17 @@ def analyze_palm_image(image_path: str, output_dir: str = "output"):
 def main():
     parser = argparse.ArgumentParser(description="Celestial Palm Reading AI Model CLI")
     parser.add_argument("--image", type=str, default="samples/sample_earth_palm.png", help="Path to palm image")
+    parser.add_argument("--camera", nargs="?", const=0, type=int, help="Launch real-time live detection on camera (specify camera index, default: 0)")
     parser.add_argument("--output", type=str, default="output", help="Directory to save reading outputs")
     args = parser.parse_args()
 
-    analyze_palm_image(args.image, args.output)
+    if args.camera is not None:
+        from live_cam import run_live_camera
+        run_live_camera(cam_index=args.camera, output_dir=args.output)
+    else:
+        analyze_palm_image(args.image, args.output)
 
 
 if __name__ == "__main__":
     main()
+

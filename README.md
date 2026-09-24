@@ -23,28 +23,44 @@ An end-to-end AI platform and computer vision model for automated Palm Reading (
      - *Fate Line*: Vocational clarity, self-determination, and milestone alignment.
    - **Auspicious Markings**: Detects configurations such as The Mystic Cross (*La Croix Mystique*) and The Ring of Solomon.
 
-3. **Interactive Vision Studio Web App**:
-   - **Live Webcam Capture**: Camera feed with a real-time golden hand silhouette alignment guide.
+2. **Interactive Vision Studio Web App**:
+   - **Real-Time Live Camera Detection & AR Studio**: High-speed (30+ FPS) live hand tracking, distance transform palm centering, dynamic celestial alignment reticle, live Chirological mounts projection, traced palm lines, real-time telemetry drawer, and optional auto-capture on steady alignment.
    - **Drag & Drop Upload**: Instant processing of user-uploaded palm photos.
    - **Interactive Layer Canvas**: Toggle Heart, Head, Life, Fate lines, and Mounts. Hover over any line or mount for instant metric tooltips.
    - **Multi-View Modes**: Switch between Palm Line Overlay, Frangi Ridge Heatmap, Sacred Geometry Blueprint, and Cropped ROI.
    - **Printable Reports**: Generate formatted PDF / paper readings.
 
-4. **Developer CLI Tool**:
-   - Run predictions directly in the terminal: `python read_palm.py --image my_palm.jpg --output output_dir`.
+3. **Desktop & Developer CLI Tools**:
+   - **Live Camera Application**: Run standalone desktop OpenCV real-time detection: `python live_cam.py` or `python read_palm.py --camera`.
+   - **Still Image Predictions**: Analyze images directly from terminal: `python read_palm.py --image my_palm.jpg --output output/`.
 
 ---
 
 ## Quick Start
 
 ### 1. Launch the Web Studio
-Run the launcher:
+Run the universal launcher:
 ```bash
 python run.py
 ```
-This automatically initializes sample assets, starts the FastAPI backend, and opens `http://localhost:8000` in your web browser.
+This initializes sample assets, starts the FastAPI backend, and opens `http://localhost:8000` in your web browser. Click **"Start Live Camera"** to begin instant AR palm detection!
 
-### 2. Run via Command Line Interface (CLI)
+### 2. Run Desktop Live Camera Detection (OpenCV)
+Run real-time palm detection directly through your webcam:
+```bash
+python live_cam.py
+# or
+python read_palm.py --camera
+```
+**Controls**:
+- `[SPACE]` / `[C]`: Capture frame and generate full Chiromancy report.
+- `[A]`: Toggle auto-capture on steady alignment.
+- `[L]`: Toggle traced palm lines overlay.
+- `[M]`: Toggle Chirological mounts overlay.
+- `[H]`: Toggle telemetry HUD.
+- `[Q]` / `[ESC]`: Exit.
+
+### 3. Run Static Image Analysis via CLI
 Analyze any palm image directly from the terminal:
 ```bash
 python read_palm.py --image samples/sample_earth_palm.png --output output/

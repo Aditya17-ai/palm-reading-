@@ -67,16 +67,21 @@
       </p>
 
       <div class="hero-quick-actions">
-        <button id="hero-btn-demo" class="btn-primary highlight">
+        <button id="hero-btn-camera" class="btn-primary highlight">
           <span class="btn-shimmer"></span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          Explore Live Demo Reading
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          Open Live Camera Studio
         </button>
-        <a href="upload.html" class="btn-secondary">
+        <button id="hero-btn-demo" class="btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Sample Archetype Demo
+        </button>
+        <a href="upload.html" class="btn-ghost">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          Upload Your Palm Photo
+          Upload Photo
         </a>
       </div>
+
 
       <!-- Feature Highlights -->
       <div class="hero-feature-ribbon">
@@ -119,13 +124,13 @@
       </div>
 
       <div class="input-tabs">
-        <button class="tab-btn active" id="tab-upload">
+        <button class="tab-btn active" id="tab-camera">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          Live Camera Studio ✦
+        </button>
+        <button class="tab-btn" id="tab-upload">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
           Upload Photo
-        </button>
-        <button class="tab-btn" id="tab-camera">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-          Live Camera Guide
         </button>
         <button class="tab-btn" id="tab-samples">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 16 12 12 8"></polygon></svg>
@@ -134,7 +139,7 @@
       </div>
 
       <!-- Upload Panel -->
-      <div class="tab-panel active" id="panel-upload">
+      <div class="tab-panel" id="panel-upload">
         <div class="drop-zone" id="drop-zone">
           <input type="file" id="file-input" accept="image/*" class="file-hidden-input">
           
@@ -174,12 +179,86 @@
       </div>
 
       <!-- Camera Panel -->
-      <div class="tab-panel" id="panel-camera">
-        <div class="camera-viewport-container">
+      <div class="tab-panel active" id="panel-camera">
+        <!-- Live Camera Controls Toolbar -->
+        <div class="camera-toolbar">
+          <div class="toolbar-left">
+            <span class="camera-status-indicator" id="camera-status-indicator">
+              <span class="pulse-ring"></span>
+              <span class="status-dot"></span>
+              <span class="status-label" id="camera-status-label">Camera Inactive</span>
+            </span>
+          </div>
+
+          <div class="toolbar-chips">
+            <button class="chip-toggle active" id="chip-ar-lines" title="Toggle AR Palm Lines">
+              <span class="chip-dot" style="background:#ec4899;"></span>
+              <span>AR Lines</span>
+            </button>
+            <button class="chip-toggle active" id="chip-mounts" title="Toggle Chirological Mounts">
+              <span class="chip-dot" style="background:#8b5cf6;"></span>
+              <span>Mounts</span>
+            </button>
+            <button class="chip-toggle active" id="chip-auto-capture" title="Auto-Capture when aligned and steady">
+              <span class="chip-dot" style="background:#10b981;"></span>
+              <span>Auto-Capture</span>
+            </button>
+            <button class="chip-action" id="btn-flip-cam" title="Switch Front/Rear Camera">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"></path><path d="M4 8V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"></path><path d="m16 12 4-4-4-4"></path><path d="m8 12-4 4 4 4"></path></svg>
+              <span>Flip</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="camera-viewport-container" id="camera-viewport-container">
           <video id="camera-feed" autoplay playsinline muted></video>
           
-          <!-- Palm Alignment Overlay Guide -->
-          <div class="palm-guide-overlay">
+          <!-- Live AR Overlaid Canvas -->
+          <canvas id="camera-detection-canvas"></canvas>
+
+          <!-- Top Viewport HUD -->
+          <div class="camera-hud-top" id="camera-hud-top">
+            <div class="hud-item hud-archetype-badge" id="hud-archetype-badge" style="display:none;">
+              <span class="archetype-icon" id="hud-archetype-icon">🌱</span>
+              <span class="archetype-text" id="hud-archetype-text">Earth Hand</span>
+            </div>
+            
+            <div class="hud-item hud-alignment-gauge" id="hud-alignment-gauge" style="display:none;">
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill" id="hud-gauge-fill" style="width: 0%;"></div>
+              </div>
+              <span class="gauge-val" id="hud-gauge-val">0%</span>
+            </div>
+
+            <div class="hud-item hud-fps-badge" id="hud-fps-badge" style="display:none;">
+              <span id="hud-fps-val">-- FPS</span>
+            </div>
+          </div>
+
+          <!-- Futuristic / Celestial Corner Brackets -->
+          <div class="corner-bracket corner-tl"></div>
+          <div class="corner-bracket corner-tr"></div>
+          <div class="corner-bracket corner-bl"></div>
+          <div class="corner-bracket corner-br"></div>
+
+          <!-- Auto Capture Countdown Circular Overlay -->
+          <div class="auto-capture-overlay" id="auto-capture-overlay" style="display:none;">
+            <svg class="countdown-svg" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="52" class="countdown-track"/>
+              <circle cx="60" cy="60" r="52" class="countdown-progress" id="countdown-progress-circle"/>
+            </svg>
+            <div class="countdown-number" id="countdown-number-text">3</div>
+            <div class="countdown-label">HOLD STEADY</div>
+          </div>
+
+          <!-- Bottom Guidance Floating Banner -->
+          <div class="camera-guidance-pill" id="camera-guidance-pill">
+            <span class="guidance-icon">✋</span>
+            <span class="guidance-text" id="camera-guidance-text">Click "Start Live Camera" to begin real-time live detection</span>
+          </div>
+
+          <!-- Static Guide Fallback (fades when camera is running) -->
+          <div class="palm-guide-overlay" id="palm-guide-overlay">
             <svg class="hand-silhouette-svg" viewBox="0 0 400 500">
               <defs>
                 <linearGradient id="guideGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -189,7 +268,7 @@
               </defs>
               <path d="M 200 450 C 170 450, 160 380, 160 350 C 130 350, 100 330, 90 270 C 80 210, 110 180, 130 190 C 130 150, 140 100, 165 95 C 185 90, 190 140, 195 160 C 200 130, 205 70, 225 65 C 245 60, 250 120, 250 160 C 260 130, 275 85, 295 90 C 315 95, 310 150, 305 185 C 325 180, 345 190, 345 230 C 345 270, 320 350, 240 350 C 240 380, 230 450, 200 450 Z" 
                     fill="none" stroke="url(#guideGradient)" stroke-width="2.5" stroke-dasharray="8 6"/>
-              <circle cx="200" cy="270" r="48" fill="none" stroke="rgba(245, 158, 11, 0.6)" stroke-width="1.5" stroke-dasharray="4 4"/>
+              <circle id="guide-center-circle" cx="200" cy="270" r="48" fill="none" stroke="rgba(245, 158, 11, 0.6)" stroke-width="1.5" stroke-dasharray="4 4"/>
               <text x="200" y="275" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="12" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600">Align Palm Center</text>
             </svg>
           </div>
@@ -197,7 +276,7 @@
           <div class="camera-controls">
             <button id="btn-start-camera" class="btn-primary">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-              Start Camera
+              Start Live Camera
             </button>
             <button id="btn-capture-photo" class="btn-primary highlight" style="display:none;">
               <span class="btn-shimmer"></span>
@@ -207,7 +286,82 @@
             <button id="btn-stop-camera" class="btn-ghost" style="display:none;">Stop</button>
           </div>
         </div>
+
+        <!-- Live Telemetry & Mini-Reading Drawer -->
+        <div class="live-telemetry-drawer" id="live-telemetry-drawer" style="display:none;">
+          <div class="telemetry-card telemetry-archetype">
+            <div class="card-eyebrow">LIVE ARCHETYPE</div>
+            <div class="archetype-main">
+              <span class="archetype-icon-lg" id="live-drawer-icon">🌱</span>
+              <div>
+                <h4 id="live-drawer-archetype">Earth Hand</h4>
+                <p id="live-drawer-desc">Pragmatic, grounded resilience</p>
+              </div>
+            </div>
+            <div class="archetype-metrics">
+              <div class="metric-row">
+                <span>Aspect Ratio</span>
+                <strong id="live-drawer-aspect">1.02</strong>
+              </div>
+              <div class="metric-row">
+                <span>Palm Solidity</span>
+                <strong id="live-drawer-solidity">84%</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="telemetry-card telemetry-harmony">
+            <div class="card-eyebrow">ESTIMATED HARMONY</div>
+            <div class="harmony-score-display">
+              <span class="score-num" id="live-drawer-harmony">--</span>
+              <span class="score-den">/100</span>
+            </div>
+            <div class="harmony-bar-track">
+              <div class="harmony-bar-fill" id="live-drawer-harmony-bar" style="width: 0%;"></div>
+            </div>
+            <div class="harmony-status-tag" id="live-drawer-status-tag">Real-Time Reading</div>
+          </div>
+
+          <div class="telemetry-card telemetry-lines">
+            <div class="card-eyebrow">REAL-TIME CHIROLOGY METERS</div>
+            <div class="live-line-meters">
+              <div class="live-meter-item">
+                <div class="meter-info">
+                  <span class="line-dot dot-heart"></span>
+                  <span>Emotion (Heart)</span>
+                  <strong id="live-val-heart">--%</strong>
+                </div>
+                <div class="mini-bar"><div class="mini-fill fill-heart" id="live-bar-heart" style="width:0%"></div></div>
+              </div>
+              <div class="live-meter-item">
+                <div class="meter-info">
+                  <span class="line-dot dot-head"></span>
+                  <span>Intellect (Head)</span>
+                  <strong id="live-val-head">--%</strong>
+                </div>
+                <div class="mini-bar"><div class="mini-fill fill-head" id="live-bar-head" style="width:0%"></div></div>
+              </div>
+              <div class="live-meter-item">
+                <div class="meter-info">
+                  <span class="line-dot dot-life"></span>
+                  <span>Vitality (Life)</span>
+                  <strong id="live-val-life">--%</strong>
+                </div>
+                <div class="mini-bar"><div class="mini-fill fill-life" id="live-bar-life" style="width:0%"></div></div>
+              </div>
+              <div class="live-meter-item">
+                <div class="meter-info">
+                  <span class="line-dot dot-fate"></span>
+                  <span>Destiny (Fate)</span>
+                  <strong id="live-val-fate">--%</strong>
+                </div>
+                <div class="mini-bar"><div class="mini-fill fill-fate" id="live-bar-fate" style="width:0%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
 
       <!-- Preset Archetypes Panel -->
       <div class="tab-panel" id="panel-samples">

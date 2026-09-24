@@ -124,11 +124,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnAnalyzePreview = document.getElementById('btn-analyze-preview');
   const btnChangePreview = document.getElementById('btn-change-preview');
 
-  // Camera Elements
+  // Camera Elements & Live Studio HUD
   const cameraFeed = document.getElementById('camera-feed');
+  const cameraDetectionCanvas = document.getElementById('camera-detection-canvas');
   const btnStartCamera = document.getElementById('btn-start-camera');
   const btnCapturePhoto = document.getElementById('btn-capture-photo');
   const btnStopCamera = document.getElementById('btn-stop-camera');
+  const cameraStatusIndicator = document.getElementById('camera-status-indicator');
+  const cameraStatusLabel = document.getElementById('camera-status-label');
+  const chipArLines = document.getElementById('chip-ar-lines');
+  const chipMounts = document.getElementById('chip-mounts');
+  const chipAutoCapture = document.getElementById('chip-auto-capture');
+  const btnFlipCam = document.getElementById('btn-flip-cam');
+  const cameraViewportContainer = document.getElementById('camera-viewport-container');
+  const cameraHudTop = document.getElementById('camera-hud-top');
+  const hudArchetypeBadge = document.getElementById('hud-archetype-badge');
+  const hudArchetypeIcon = document.getElementById('hud-archetype-icon');
+  const hudArchetypeText = document.getElementById('hud-archetype-text');
+  const hudAlignmentGauge = document.getElementById('hud-alignment-gauge');
+  const hudGaugeFill = document.getElementById('hud-gauge-fill');
+  const hudGaugeVal = document.getElementById('hud-gauge-val');
+  const hudFpsBadge = document.getElementById('hud-fps-badge');
+  const hudFpsVal = document.getElementById('hud-fps-val');
+  const autoCaptureOverlay = document.getElementById('auto-capture-overlay');
+  const countdownProgressCircle = document.getElementById('countdown-progress-circle');
+  const countdownNumberText = document.getElementById('countdown-number-text');
+  const cameraGuidancePill = document.getElementById('camera-guidance-pill');
+  const cameraGuidanceText = document.getElementById('camera-guidance-text');
+  const palmGuideOverlay = document.getElementById('palm-guide-overlay');
+  const liveTelemetryDrawer = document.getElementById('live-telemetry-drawer');
+  const liveDrawerIcon = document.getElementById('live-drawer-icon');
+  const liveDrawerArchetype = document.getElementById('live-drawer-archetype');
+  const liveDrawerDesc = document.getElementById('live-drawer-desc');
+  const liveDrawerAspect = document.getElementById('live-drawer-aspect');
+  const liveDrawerSolidity = document.getElementById('live-drawer-solidity');
+  const liveDrawerHarmony = document.getElementById('live-drawer-harmony');
+  const liveDrawerHarmonyBar = document.getElementById('live-drawer-harmony-bar');
+  const liveDrawerStatusTag = document.getElementById('live-drawer-status-tag');
+  const liveValHeart = document.getElementById('live-val-heart');
+  const liveBarHeart = document.getElementById('live-bar-heart');
+  const liveValHead = document.getElementById('live-val-head');
+  const liveBarHead = document.getElementById('live-bar-head');
+  const liveValLife = document.getElementById('live-val-life');
+  const liveBarLife = document.getElementById('live-bar-life');
+  const liveValFate = document.getElementById('live-val-fate');
+  const liveBarFate = document.getElementById('live-bar-fate');
 
   // Scanner Modal
   const scannerModal = document.getElementById('scanner-modal');
@@ -204,6 +244,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const heroBtnCamera = document.getElementById('hero-btn-camera');
+  if (heroBtnCamera) {
+    heroBtnCamera.addEventListener('click', () => {
+      document.getElementById('input-section').scrollIntoView({ behavior: 'smooth' });
+      switchTab('camera');
+    });
+  }
+
   // Quick Demo Buttons
   if (btnHeaderDemo) {
     btnHeaderDemo.addEventListener('click', () => analyzeSamplePreset('earth'));
@@ -211,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (heroBtnDemo) {
     heroBtnDemo.addEventListener('click', () => analyzeSamplePreset('earth'));
   }
+
 
   // =========================================================================
   // 4. Drag & Drop File Upload with Preview
@@ -273,19 +322,134 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =========================================================================
-  // 5. Live Webcam Controller
+  // 5. Live Webcam Controller & Real-Time AR Detection Engine
   // =========================================================================
+  let currentFacingMode = 'user';
+  let isDetectingLive = false;
+  let isDetectionRequestInFlight = false;
+  let arLinesEnabled = true;
+  let mountsEnabled = true;
+  let autoCaptureEnabled = true;
+  let autoCaptureStartTime = null;
+  const AUTO_CAPTURE_DURATION = 1500; // 1.5 seconds of steady alignment
+
+  let latestDetection = null;
+  let smoothedData = {
+    cx: null,
+    cy: null,
+    radius: 0,
+    bbox: null,
+    alignmentScore: 0
+  };
+
+  let compassAngle = 0;
+  let arAnimFrameId = null;
+  let detectionLoopTimeout = null;
+  let fpsFrames = 0;
+  let fpsLastCheck = performance.now();
+  let currentFps = 0;
+
+  // Offscreen canvas for ultra-fast frame downscaling
+  const offscreenCanvas = document.createElement('canvas');
+  const offscreenCtx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
+
+  // Mount glyph symbols mapping
+  const mountGlyphs = {
+    "Venus": "♀",
+    "Jupiter": "♃",
+    "Saturn": "♄",
+    "Apollo": "☉",
+    "Mercury": "☿",
+    "Luna": "☽",
+    "Mars_Inner": "♂",
+    "Mars_Outer": "🛡"
+  };
+
+  const archetypeIcons = {
+    "Earth": "🌱",
+    "Air": "💨",
+    "Fire": "🔥",
+    "Water": "💧"
+  };
+
+  function syncCanvasDimensions() {
+    if (!cameraFeed.videoWidth || !cameraDetectionCanvas) return;
+    cameraDetectionCanvas.width = cameraFeed.videoWidth;
+    cameraDetectionCanvas.height = cameraFeed.videoHeight;
+  }
+
+  window.addEventListener('resize', syncCanvasDimensions);
+
+  // Chip Toggles
+  if (chipArLines) {
+    chipArLines.addEventListener('click', () => {
+      arLinesEnabled = !arLinesEnabled;
+      chipArLines.classList.toggle('active', arLinesEnabled);
+    });
+  }
+
+  if (chipMounts) {
+    chipMounts.addEventListener('click', () => {
+      mountsEnabled = !mountsEnabled;
+      chipMounts.classList.toggle('active', mountsEnabled);
+    });
+  }
+
+  if (chipAutoCapture) {
+    chipAutoCapture.addEventListener('click', () => {
+      autoCaptureEnabled = !autoCaptureEnabled;
+      chipAutoCapture.classList.toggle('active', autoCaptureEnabled);
+      if (!autoCaptureEnabled) {
+        autoCaptureStartTime = null;
+        if (autoCaptureOverlay) autoCaptureOverlay.style.display = 'none';
+      }
+    });
+  }
+
+  if (btnFlipCam) {
+    btnFlipCam.addEventListener('click', async () => {
+      currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+      if (cameraStream) {
+        stopCamera();
+        await startCamera();
+      }
+    });
+  }
+
   async function startCamera() {
     try {
-      if (cameraStream) return;
+      if (cameraStream) stopCamera();
+
       cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: {
+          facingMode: currentFacingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
         audio: false
       });
+
       cameraFeed.srcObject = cameraStream;
       btnStartCamera.style.display = 'none';
       btnCapturePhoto.style.display = 'inline-flex';
       btnStopCamera.style.display = 'inline-flex';
+
+      if (cameraStatusIndicator) cameraStatusIndicator.classList.add('active');
+      if (cameraStatusLabel) cameraStatusLabel.textContent = 'Live Detection Active';
+      if (palmGuideOverlay) palmGuideOverlay.style.opacity = '0.35';
+
+      if (hudFpsBadge) hudFpsBadge.style.display = 'inline-flex';
+      if (hudAlignmentGauge) hudAlignmentGauge.style.display = 'inline-flex';
+      if (hudArchetypeBadge) hudArchetypeBadge.style.display = 'inline-flex';
+      if (liveTelemetryDrawer) liveTelemetryDrawer.style.display = 'grid';
+
+      cameraFeed.onloadedmetadata = () => {
+        syncCanvasDimensions();
+        isDetectingLive = true;
+        autoCaptureStartTime = null;
+        runDetectionLoop();
+        runARRenderLoop();
+      };
     } catch (err) {
       console.warn('Camera access error:', err);
       alert('Camera access could not be initialized or permission was denied. You can still upload a photo or select an archetype preset!');
@@ -294,33 +458,457 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function stopCamera() {
+    isDetectingLive = false;
+    isDetectionRequestInFlight = false;
+    autoCaptureStartTime = null;
+
+    if (arAnimFrameId) {
+      cancelAnimationFrame(arAnimFrameId);
+      arAnimFrameId = null;
+    }
+    if (detectionLoopTimeout) {
+      clearTimeout(detectionLoopTimeout);
+      detectionLoopTimeout = null;
+    }
+
     if (cameraStream) {
       cameraStream.getTracks().forEach(track => track.stop());
       cameraStream = null;
     }
     if (cameraFeed) cameraFeed.srcObject = null;
+
+    if (cameraDetectionCanvas) {
+      const ctx = cameraDetectionCanvas.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, cameraDetectionCanvas.width, cameraDetectionCanvas.height);
+    }
+
     if (btnStartCamera) btnStartCamera.style.display = 'inline-flex';
     if (btnCapturePhoto) btnCapturePhoto.style.display = 'none';
     if (btnStopCamera) btnStopCamera.style.display = 'none';
+
+    if (cameraStatusIndicator) cameraStatusIndicator.classList.remove('active');
+    if (cameraStatusLabel) cameraStatusLabel.textContent = 'Camera Inactive';
+    if (palmGuideOverlay) palmGuideOverlay.style.opacity = '1';
+
+    if (hudFpsBadge) hudFpsBadge.style.display = 'none';
+    if (hudAlignmentGauge) hudAlignmentGauge.style.display = 'none';
+    if (hudArchetypeBadge) hudArchetypeBadge.style.display = 'none';
+    if (autoCaptureOverlay) autoCaptureOverlay.style.display = 'none';
+    if (liveTelemetryDrawer) liveTelemetryDrawer.style.display = 'none';
+
+    if (cameraViewportContainer) cameraViewportContainer.classList.remove('aligned');
+    if (cameraGuidancePill) cameraGuidancePill.classList.remove('aligned');
+    if (cameraGuidanceText) cameraGuidanceText.textContent = 'Click "Start Live Camera" to begin real-time live detection';
+
+    latestDetection = null;
+    smoothedData = { cx: null, cy: null, radius: 0, bbox: null, alignmentScore: 0 };
   }
 
   btnStartCamera.addEventListener('click', startCamera);
   btnStopCamera.addEventListener('click', stopCamera);
 
-  btnCapturePhoto.addEventListener('click', () => {
+  function captureAndAnalyzePhoto() {
     if (!cameraFeed.videoWidth) return;
+
+    // Flash animation
+    if (cameraViewportContainer) {
+      cameraViewportContainer.classList.add('capture-flash');
+      setTimeout(() => cameraViewportContainer.classList.remove('capture-flash'), 300);
+    }
+
     const canvas = document.createElement('canvas');
     canvas.width = cameraFeed.videoWidth;
     canvas.height = cameraFeed.videoHeight;
     const ctx = canvas.getContext('2d');
-    // Mirror horizontal to match displayed preview
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
+
+    // Mirror horizontal if using front-facing user camera
+    if (currentFacingMode === 'user') {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
     ctx.drawImage(cameraFeed, 0, 0, canvas.width, canvas.height);
     const base64Img = canvas.toDataURL('image/png');
+
     stopCamera();
     analyzeBase64(base64Img);
-  });
+  }
+
+  btnCapturePhoto.addEventListener('click', captureAndAnalyzePhoto);
+
+  // =========================================================================
+  // Live Detection Async Loop (15 - 30 FPS Adaptive)
+  // =========================================================================
+  async function runDetectionLoop() {
+    if (!isDetectingLive || !cameraFeed || cameraFeed.readyState < 2) {
+      if (isDetectingLive) {
+        detectionLoopTimeout = setTimeout(runDetectionLoop, 80);
+      }
+      return;
+    }
+
+    if (isDetectionRequestInFlight) {
+      detectionLoopTimeout = setTimeout(runDetectionLoop, 20);
+      return;
+    }
+
+    const vw = cameraFeed.videoWidth;
+    const vh = cameraFeed.videoHeight;
+    if (!vw || !vh) {
+      detectionLoopTimeout = setTimeout(runDetectionLoop, 50);
+      return;
+    }
+
+    // Downscale to max 320px for ultra-low latency frame transmission (<10ms)
+    const maxDim = 320;
+    const scale = Math.min(1.0, maxDim / Math.max(vw, vh));
+    const dw = Math.round(vw * scale);
+    const dh = Math.round(vh * scale);
+
+    if (offscreenCanvas.width !== dw || offscreenCanvas.height !== dh) {
+      offscreenCanvas.width = dw;
+      offscreenCanvas.height = dh;
+    }
+
+    offscreenCtx.drawImage(cameraFeed, 0, 0, dw, dh);
+    const jpegDataUrl = offscreenCanvas.toDataURL('image/jpeg', 0.65);
+
+    isDetectionRequestInFlight = true;
+    const t0 = performance.now();
+
+    try {
+      const response = await fetch('/api/detect-live', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: jpegDataUrl,
+          mirror: (currentFacingMode === 'user')
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        latestDetection = data;
+
+        const roundTripMs = Math.round(performance.now() - t0);
+
+        // Calculate FPS
+        fpsFrames++;
+        const now = performance.now();
+        if (now - fpsLastCheck >= 500) {
+          currentFps = Math.round((fpsFrames * 1000) / (now - fpsLastCheck));
+          fpsFrames = 0;
+          fpsLastCheck = now;
+          if (hudFpsVal) hudFpsVal.textContent = `${currentFps} FPS • ${roundTripMs}ms`;
+        }
+
+        updateLiveUI(data);
+      }
+    } catch (err) {
+      console.warn('Live detection tick error:', err);
+    } finally {
+      isDetectionRequestInFlight = false;
+      if (isDetectingLive) {
+        // Schedule next detection tick promptly
+        detectionLoopTimeout = setTimeout(runDetectionLoop, 25);
+      }
+    }
+  }
+
+  function updateLiveUI(data) {
+    if (!data) return;
+
+    const alignScore = data.alignment_score || 0;
+    const isAligned = Boolean(data.is_aligned);
+
+    // Update Top Alignment Gauge
+    if (hudGaugeFill) hudGaugeFill.style.width = `${alignScore}%`;
+    if (hudGaugeVal) hudGaugeVal.textContent = `${alignScore}%`;
+
+    // Guidance pill
+    if (cameraGuidanceText) cameraGuidanceText.textContent = data.guide_feedback || 'Align open palm with center circle';
+
+    if (data.detected) {
+      // Archetype badge
+      if (hudArchetypeBadge) {
+        hudArchetypeBadge.style.display = 'inline-flex';
+        const at = data.hand_type ? data.hand_type.type : 'Earth';
+        if (hudArchetypeIcon) hudArchetypeIcon.textContent = archetypeIcons[at] || '🌱';
+        if (hudArchetypeText) hudArchetypeText.textContent = `${at} Hand`;
+      }
+
+      // Update Telemetry Drawer
+      if (data.hand_type) {
+        const at = data.hand_type.type;
+        if (liveDrawerIcon) liveDrawerIcon.textContent = archetypeIcons[at] || '🌱';
+        if (liveDrawerArchetype) liveDrawerArchetype.textContent = `${at} Hand`;
+        if (liveDrawerDesc) liveDrawerDesc.textContent = data.hand_type.description || '';
+        if (liveDrawerAspect) liveDrawerAspect.textContent = data.hand_type.aspect_ratio || '1.0';
+        if (liveDrawerSolidity) liveDrawerSolidity.textContent = `${Math.round((data.hand_type.solidity || 0.8) * 100)}%`;
+      }
+
+      if (data.scores) {
+        if (liveDrawerHarmony) liveDrawerHarmony.textContent = data.scores.overall_harmony || '--';
+        if (liveDrawerHarmonyBar) liveDrawerHarmonyBar.style.width = `${data.scores.overall_harmony || 0}%`;
+        if (liveValHeart) liveValHeart.textContent = `${data.scores.heart_harmony || '--'}%`;
+        if (liveBarHeart) liveBarHeart.style.width = `${data.scores.heart_harmony || 0}%`;
+        if (liveValHead) liveValHead.textContent = `${data.scores.intellect || '--'}%`;
+        if (liveBarHead) liveBarHead.style.width = `${data.scores.intellect || 0}%`;
+        if (liveValLife) liveValLife.textContent = `${data.scores.vitality || '--'}%`;
+        if (liveBarLife) liveBarLife.style.width = `${data.scores.vitality || 0}%`;
+        if (liveValFate) liveValFate.textContent = `${data.scores.destiny || '--'}%`;
+        if (liveBarFate) liveBarFate.style.width = `${data.scores.destiny || 0}%`;
+      }
+
+      // Viewport aligned state
+      if (isAligned) {
+        if (cameraViewportContainer) cameraViewportContainer.classList.add('aligned');
+        if (cameraGuidancePill) cameraGuidancePill.classList.add('aligned');
+
+        // Auto-Capture logic
+        if (autoCaptureEnabled) {
+          if (!autoCaptureStartTime) {
+            autoCaptureStartTime = performance.now();
+          }
+          const elapsed = performance.now() - autoCaptureStartTime;
+          const progress = Math.min(1.0, elapsed / AUTO_CAPTURE_DURATION);
+
+          if (autoCaptureOverlay) autoCaptureOverlay.style.display = 'flex';
+          if (countdownProgressCircle) {
+            const circ = 326.7;
+            countdownProgressCircle.style.strokeDashoffset = `${circ * (1.0 - progress)}`;
+          }
+          if (countdownNumberText) {
+            countdownNumberText.textContent = Math.max(1, Math.ceil((AUTO_CAPTURE_DURATION - elapsed) / 500));
+          }
+
+          if (elapsed >= AUTO_CAPTURE_DURATION) {
+            autoCaptureStartTime = null;
+            if (autoCaptureOverlay) autoCaptureOverlay.style.display = 'none';
+            captureAndAnalyzePhoto();
+          }
+        }
+      } else {
+        if (cameraViewportContainer) cameraViewportContainer.classList.remove('aligned');
+        if (cameraGuidancePill) cameraGuidancePill.classList.remove('aligned');
+        autoCaptureStartTime = null;
+        if (autoCaptureOverlay) autoCaptureOverlay.style.display = 'none';
+      }
+    } else {
+      if (cameraViewportContainer) cameraViewportContainer.classList.remove('aligned');
+      if (cameraGuidancePill) cameraGuidancePill.classList.remove('aligned');
+      autoCaptureStartTime = null;
+      if (autoCaptureOverlay) autoCaptureOverlay.style.display = 'none';
+    }
+  }
+
+  // =========================================================================
+  // Smooth AR Overlay Canvas Rendering (60 FPS)
+  // =========================================================================
+  function runARRenderLoop() {
+    if (!isDetectingLive || !cameraDetectionCanvas) return;
+
+    const ctx = cameraDetectionCanvas.getContext('2d');
+    const cw = cameraDetectionCanvas.width;
+    const ch = cameraDetectionCanvas.height;
+
+    ctx.clearRect(0, 0, cw, ch);
+    compassAngle = (compassAngle + 0.02) % (Math.PI * 2);
+
+    const tgtCx = cw / 2;
+    const tgtCy = ch * 0.50;
+    const tgtR = Math.min(cw, ch) * 0.22;
+
+    const isAligned = latestDetection ? Boolean(latestDetection.is_aligned) : false;
+    const alignScore = latestDetection ? (latestDetection.alignment_score || 0) : 0;
+
+    // 1. Draw Target Reticle at frame center
+    ctx.save();
+    const reticleColor = isAligned ? 'rgba(16, 185, 129, 0.85)' : (alignScore > 40 ? 'rgba(245, 158, 11, 0.75)' : 'rgba(139, 92, 246, 0.65)');
+    ctx.strokeStyle = reticleColor;
+    ctx.lineWidth = 2.5;
+
+    // Segmented rotating circle
+    ctx.beginPath();
+    ctx.arc(tgtCx, tgtCy, tgtR, 0, Math.PI * 2);
+    ctx.setLineDash([12, 10]);
+    ctx.stroke();
+
+    // Center Crosshairs
+    ctx.setLineDash([]);
+    ctx.lineWidth = 1.5;
+    const chLen = 14;
+    ctx.beginPath();
+    ctx.moveTo(tgtCx - chLen, tgtCy); ctx.lineTo(tgtCx + chLen, tgtCy);
+    ctx.moveTo(tgtCx, tgtCy - chLen); ctx.lineTo(tgtCx, tgtCy + chLen);
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. Render Live Hand Tracking
+    if (latestDetection && latestDetection.detected) {
+      const data = latestDetection;
+
+      // Smooth interpolation (lerp factor 0.35)
+      smoothedData.cx = smoothedData.cx !== null ? smoothedData.cx + (data.center[0] - smoothedData.cx) * 0.35 : data.center[0];
+      smoothedData.cy = smoothedData.cy !== null ? smoothedData.cy + (data.center[1] - smoothedData.cy) * 0.35 : data.center[1];
+      smoothedData.radius = smoothedData.radius ? smoothedData.radius + (data.radius - smoothedData.radius) * 0.35 : data.radius;
+
+      const px = smoothedData.cx;
+      const py = smoothedData.cy;
+      const pr = smoothedData.radius;
+
+      // Hand Bounding Box with Glowing Sci-Fi Corner Brackets
+      if (data.bbox) {
+        const [bx, by, bw, bh] = data.bbox;
+        const cornerLen = Math.min(26, bw * 0.25, bh * 0.25);
+        ctx.save();
+        ctx.strokeStyle = isAligned ? '#10b981' : '#06b6d4';
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = isAligned ? '#10b981' : '#06b6d4';
+        ctx.shadowBlur = 10;
+
+        // Top-left
+        ctx.beginPath();
+        ctx.moveTo(bx + cornerLen, by); ctx.lineTo(bx, by); ctx.lineTo(bx, by + cornerLen);
+        ctx.stroke();
+        // Top-right
+        ctx.beginPath();
+        ctx.moveTo(bx + bw - cornerLen, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + cornerLen);
+        ctx.stroke();
+        // Bottom-left
+        ctx.beginPath();
+        ctx.moveTo(bx, by + bh - cornerLen); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + cornerLen, by + bh);
+        ctx.stroke();
+        // Bottom-right
+        ctx.beginPath();
+        ctx.moveTo(bx + bw - cornerLen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - cornerLen);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Dynamic Palm Center Compass
+      if (pr > 10) {
+        ctx.save();
+        ctx.translate(px, py);
+
+        // Outer pulsing ring
+        ctx.beginPath();
+        ctx.arc(0, 0, pr, 0, Math.PI * 2);
+        ctx.strokeStyle = isAligned ? 'rgba(16, 185, 129, 0.7)' : 'rgba(245, 158, 11, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 6]);
+        ctx.stroke();
+
+        // Rotating Celestial Compass
+        ctx.rotate(compassAngle);
+        ctx.beginPath();
+        ctx.arc(0, 0, pr * 0.75, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(139, 92, 246, 0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 8]);
+        ctx.stroke();
+
+        // 4 Cardinal Ray Ticks
+        for (let i = 0; i < 4; i++) {
+          ctx.rotate(Math.PI / 2);
+          ctx.beginPath();
+          ctx.moveTo(pr * 0.60, 0);
+          ctx.lineTo(pr * 0.85, 0);
+          ctx.strokeStyle = 'rgba(245, 158, 11, 0.8)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([]);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+
+        // Center Core Beacon
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI * 2);
+        ctx.fillStyle = isAligned ? '#10b981' : '#f59e0b';
+        ctx.shadowColor = isAligned ? '#10b981' : '#f59e0b';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Live Traced Palm Lines
+      if (arLinesEnabled && data.lines) {
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        for (const [lineName, lineObj] of Object.entries(data.lines)) {
+          const pts = lineObj.points;
+          if (!pts || pts.length < 2) continue;
+
+          const rgb = lineObj.color_rgb || [255, 255, 255];
+          const colorHex = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+
+          ctx.strokeStyle = colorHex;
+          ctx.shadowColor = colorHex;
+          ctx.shadowBlur = 12;
+          ctx.lineWidth = 3.5;
+
+          ctx.beginPath();
+          ctx.moveTo(pts[0][0], pts[0][1]);
+          for (let i = 1; i < pts.length; i++) {
+            ctx.lineTo(pts[i][0], pts[i][1]);
+          }
+          ctx.stroke();
+
+          // Endpoint Pulse Marker
+          ctx.beginPath();
+          ctx.arc(pts[0][0], pts[0][1], 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowBlur = 6;
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // Chirological Mounts
+      if (mountsEnabled && data.mounts) {
+        ctx.save();
+        ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+
+        for (const [key, mount] of Object.entries(data.mounts)) {
+          const [mx, my] = mount.pos;
+          const mr = mount.radius || 16;
+          const glyph = mountGlyphs[key] || '✦';
+          const shortName = mount.name.replace('Mount of ', '').replace(' / Apollo', '').replace(' / Moon', '');
+
+          // Glowing Halo Ring
+          ctx.beginPath();
+          ctx.arc(mx, my, mr, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(168, 85, 247, 0.55)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 4]);
+          ctx.stroke();
+
+          // Mount Core Dot
+          ctx.beginPath();
+          ctx.arc(mx, my, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#c084fc';
+          ctx.shadowColor = '#a855f7';
+          ctx.shadowBlur = 8;
+          ctx.fill();
+
+          // Mount Sigil & Text Label
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#fde68a';
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+          ctx.shadowBlur = 4;
+          ctx.fillText(`${glyph} ${shortName}`, mx, my - mr - 4);
+        }
+        ctx.restore();
+      }
+    }
+
+    arAnimFrameId = requestAnimationFrame(runARRenderLoop);
+  }
+
 
   // =========================================================================
   // 6. Preset Archetype Selection
