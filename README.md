@@ -1,6 +1,17 @@
+---
+title: Palmistra AI - Celestial Palm Reading Studio
+emoji: 🔮
+colorFrom: purple
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Palmistra AI: Palm Reading Model & Vision Studio
 
 An end-to-end AI platform and computer vision model for automated Palm Reading (Chiromancy & Chirology). The system analyzes hand contours, segments the palm Region of Interest (ROI), extracts fine and major creases using multi-scale Frangi Hessian ridge detection, classifies the 4 primary palmistry lines (Heart, Head, Life, Fate), maps Chirological mounts, and generates personalized, authentic palmistry readings.
+
 
 ---
 

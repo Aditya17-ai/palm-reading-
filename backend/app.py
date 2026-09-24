@@ -228,6 +228,13 @@ async def analyze_sample(sample_id: str):
 
 # Mount static sample images
 os.makedirs("samples", exist_ok=True)
+if not os.path.exists("samples/sample_earth_palm.png"):
+    try:
+        from backend.generate_samples import generate_all_samples
+        generate_all_samples()
+    except Exception as e:
+        print(f"[*] Note: generating samples: {e}")
+
 app.mount("/samples", StaticFiles(directory="samples"), name="samples")
 
 # Mount frontend directory if it exists
@@ -237,4 +244,7 @@ if os.path.exists("frontend"):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.app:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    uvicorn.run("backend.app:app", host=host, port=port, reload=False)
+

@@ -19,10 +19,12 @@ def ensure_samples():
         generate_all_samples()
 
 
-def open_browser():
+def open_browser(port: int = 8000):
     time.sleep(1.2)
-    print("[*] Opening Celestial Palm Reading Studio in your browser: http://localhost:8000")
-    webbrowser.open("http://localhost:8000")
+    # Only open browser if not running in headless/cloud environment
+    if os.environ.get("HEADLESS") != "true" and os.environ.get("RENDER") != "true":
+        print(f"[*] Opening Celestial Palm Reading Studio in your browser: http://localhost:{port}")
+        webbrowser.open(f"http://localhost:{port}")
 
 
 def main():
@@ -32,12 +34,16 @@ def main():
 
     ensure_samples()
 
-    # Launch browser in a background thread
-    threading.Thread(target=open_browser, daemon=True).start()
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "127.0.0.1")
 
-    print("[*] Starting backend server on http://localhost:8000 (Press Ctrl+C to stop)...")
-    uvicorn.run("backend.app:app", host="127.0.0.1", port=8000, reload=False, log_level="info")
+    # Launch browser in a background thread if local
+    threading.Thread(target=open_browser, args=(port,), daemon=True).start()
+
+    print(f"[*] Starting backend server on http://{host}:{port} (Press Ctrl+C to stop)...")
+    uvicorn.run("backend.app:app", host=host, port=port, reload=False, log_level="info")
 
 
 if __name__ == "__main__":
     main()
+

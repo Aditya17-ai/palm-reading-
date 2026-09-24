@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: palmistra-ai
+    env: python
+    buildCommand: pip install -r requirements.txt && python -c "from backend.generate_samples import generate_all_samples; generate_all_samples()"
+    startCommand: uvicorn backend.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
