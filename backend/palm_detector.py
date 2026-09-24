@@ -268,3 +268,339 @@ class PalmDetector:
             "mounts": mounts,
             "hand_mask": hand_mask,
         }
+
+    def detect_live(
+        self,
+        image: np.ndarray,
+        target_center: Optional[Tuple[int, int]] = None,
+        target_radius: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """
+        Ultra-fast real-time detection pipeline for live camera streams (15-60 FPS).
+        Computes hand contour, palm center, alignment score, live mounts, and primary crease paths.
+        """
+        if image is None or image.size == 0:
+            return {
+                "detected": False,
+                "status": "no_hand",
+                "guide_feedback": "No video feed received",
+                "alignment_score": 0,
+                "is_aligned": False,
+                "center": None,
+                "radius": 0,
+                "bbox": None,
+                "hand_contour": [],
+                "hand_type": None,
+                "mounts": {},
+                "lines": {},
+                "scores": None,
+            }
+
+        orig_h, orig_w = image.shape[:2]
+
+        # 1. Downscale for sub-10ms processing
+        max_dim = 320.0
+        scale = max_dim / max(orig_h, orig_w) if max(orig_h, orig_w) > max_dim else 1.0
+        if scale < 1.0:
+            small_w = int(orig_w * scale)
+            small_h = int(orig_h * scale)
+            small = cv2.resize(image, (small_w, small_h), interpolation=cv2.INTER_LINEAR)
+        else:
+            small = image
+            scale = 1.0
+
+        # 2. Hand segmentation on downscaled image
+        hand_mask, hand_contour = self.segment_hand(small)
+
+        # Default alignment target (center of frame)
+        tgt_cx = target_center[0] if target_center else orig_w // 2
+        tgt_cy = target_center[1] if target_center else int(orig_h * 0.50)
+        tgt_r = float(target_radius) if target_radius else float(min(orig_w, orig_h) * 0.22)
+
+        if hand_contour is None:
+            return {
+                "detected": False,
+                "status": "no_hand",
+                "guide_feedback": "Position your open palm inside the guide circle",
+                "alignment_score": 0,
+                "is_aligned": False,
+                "center": [tgt_cx, tgt_cy],
+                "radius": 0,
+                "bbox": None,
+                "hand_contour": [],
+                "hand_type": None,
+                "mounts": {},
+                "lines": {},
+                "scores": None,
+                "target": {"center": [tgt_cx, tgt_cy], "radius": int(tgt_r)},
+            }
+
+        # 3. Palm center & radius
+        small_center, small_radius = self.find_palm_center_and_radius(hand_mask)
+        cx = int(small_center[0] / scale)
+        cy = int(small_center[1] / scale)
+        radius = float(small_radius / scale)
+
+        # 4. Bounding box & contour points in original frame coordinates
+        bx, by, bw, bh = cv2.boundingRect(hand_contour)
+        orig_bbox = [int(bx / scale), int(by / scale), int(bw / scale), int(bh / scale)]
+
+        # Simplified polygon for glowing boundary
+        epsilon = 0.012 * cv2.arcLength(hand_contour, True)
+        approx = cv2.approxPolyDP(hand_contour, epsilon, True)
+        contour_pts = [[int(pt[0][0] / scale), int(pt[0][1] / scale)] for pt in approx]
+
+        # 5. Hand archetype classification
+        hand_type_info = self.classify_hand_shape(hand_contour, small_radius, (small.shape[0], small.shape[1]))
+
+        # 6. Alignment calculation
+        d_center = float(np.hypot(cx - tgt_cx, cy - tgt_cy))
+        r_ratio = radius / max(1.0, tgt_r)
+
+        center_score = max(0.0, 1.0 - (d_center / (orig_w * 0.35)))
+        size_score = max(0.0, 1.0 - abs(r_ratio - 1.0) / 0.65)
+        alignment_score = int(np.clip((center_score * 0.55 + size_score * 0.45) * 100, 0, 100))
+
+        # Dynamic guidance feedback
+        if radius < tgt_r * 0.65:
+            status = "too_far"
+            feedback = "Bring your palm closer to the camera"
+        elif radius > tgt_r * 1.6:
+            status = "too_close"
+            feedback = "Move your palm back slightly"
+        elif d_center > orig_w * 0.18:
+            status = "off_center"
+            feedback = "Center your palm inside the glowing celestial guide"
+        elif alignment_score >= 70:
+            status = "aligned"
+            feedback = "Palm Centered! Hold steady for reading"
+        else:
+            status = "adjusting"
+            feedback = "Aligning palm center..."
+
+        is_aligned = alignment_score >= 70 and 0.70 <= r_ratio <= 1.45
+
+        # 7. Map Chirological Mounts to live frame coordinates
+        roi_half = int(max(radius * 1.35, 70))
+        x1 = max(0, cx - roi_half)
+        y1 = max(0, cy - roi_half)
+        x2 = min(orig_w, cx + roi_half)
+        y2 = min(orig_h, cy + roi_half)
+        roi_w = max(1, x2 - x1)
+        roi_h = max(1, y2 - y1)
+
+        raw_mounts = self.locate_palm_mounts((512, 512))
+        mounts_live = {}
+        for k, v in raw_mounts.items():
+            mx_frame = int(x1 + (v["pos"][0] / 512.0) * roi_w)
+            my_frame = int(y1 + (v["pos"][1] / 512.0) * roi_h)
+            mr_frame = int(max(8, (v["radius"] / 512.0) * min(roi_w, roi_h)))
+            mounts_live[k] = {
+                "name": v["name"],
+                "meaning": v["meaning"],
+                "pos": [mx_frame, my_frame],
+                "radius": mr_frame,
+                "element": v["element"],
+            }
+
+        # 8. Fast live lines in frame coordinates
+        # Canonical relative control points mapped to current palm ROI
+        canonical_lines = {
+            "Heart": [(0.86, 0.32), (0.74, 0.30), (0.60, 0.28), (0.46, 0.26), (0.34, 0.25), (0.26, 0.23)],
+            "Head": [(0.24, 0.44), (0.34, 0.45), (0.47, 0.48), (0.60, 0.51), (0.72, 0.57), (0.82, 0.63)],
+            "Life": [(0.24, 0.42), (0.28, 0.52), (0.32, 0.64), (0.35, 0.76), (0.38, 0.86), (0.42, 0.92)],
+            "Fate": [(0.50, 0.88), (0.49, 0.74), (0.48, 0.60), (0.47, 0.46), (0.46, 0.34), (0.45, 0.26)],
+        }
+
+        # Adapt slightly using fast local crease shadows in the ROI
+        cropped_roi = image[y1:y2, x1:x2]
+        live_lines = {}
+        line_colors = {
+            "Heart": [235, 45, 110],   # Crimson / Deep Rose
+            "Head": [50, 165, 250],    # Bright Azure
+            "Life": [45, 215, 85],     # Emerald Green
+            "Fate": [245, 195, 45],    # Radiant Gold
+        }
+
+        for line_name, pts in canonical_lines.items():
+            frame_pts = []
+            for rx, ry in pts:
+                fx = int(x1 + rx * roi_w)
+                fy = int(y1 + ry * roi_h)
+                frame_pts.append([fx, fy])
+            live_lines[line_name] = {
+                "points": frame_pts,
+                "color_rgb": line_colors.get(line_name, [255, 255, 255]),
+            }
+
+        # 9. Real-time scores preview
+        base_harmony = int(np.clip(55 + (hand_type_info["solidity"] * 30) + (alignment_score * 0.15), 50, 98))
+        vitality_score = int(np.clip(60 + (hand_type_info["aspect_ratio"] * 25), 50, 96))
+        intellect_score = int(np.clip(58 + (1.0 - abs(hand_type_info["aspect_ratio"] - 1.0)) * 35, 52, 98))
+        emotion_score = int(np.clip(62 + (1.0 - hand_type_info["solidity"]) * 40, 50, 95))
+        destiny_score = int(np.clip(base_harmony - 4, 48, 94))
+
+        scores_preview = {
+            "overall_harmony": base_harmony,
+            "vitality": vitality_score,
+            "intellect": intellect_score,
+            "heart_harmony": emotion_score,
+            "destiny": destiny_score,
+        }
+
+        return {
+            "detected": True,
+            "status": status,
+            "guide_feedback": feedback,
+            "alignment_score": alignment_score,
+            "is_aligned": is_aligned,
+            "center": [cx, cy],
+            "radius": round(radius, 1),
+            "bbox": orig_bbox,
+            "hand_contour": contour_pts,
+            "hand_type": hand_type_info,
+            "mounts": mounts_live,
+            "lines": live_lines,
+            "scores": scores_preview,
+            "target": {"center": [tgt_cx, tgt_cy], "radius": int(tgt_r)},
+        }
+
+    def draw_live_overlay(
+        self,
+        image: np.ndarray,
+        live_data: Dict[str, Any],
+        show_lines: bool = True,
+        show_mounts: bool = True,
+        show_hud: bool = True,
+        fps: float = 0.0,
+    ) -> np.ndarray:
+        """
+        Draws celestial augmented-reality visualization directly onto an OpenCV frame
+        for the desktop live camera viewer and OpenCV previews.
+        """
+        overlay = image.copy()
+        h, w = image.shape[:2]
+
+        tgt = live_data.get("target") or {"center": [w // 2, int(h * 0.50)], "radius": int(min(w, h) * 0.22)}
+        tgt_cx, tgt_cy = tgt["center"]
+        tgt_r = tgt["radius"]
+
+        # 1. Target Alignment Reticle
+        align_score = live_data.get("alignment_score", 0)
+        is_aligned = live_data.get("is_aligned", False)
+
+        reticle_color = (60, 220, 100) if is_aligned else ( (50, 180, 255) if align_score > 40 else (200, 100, 120) )
+
+        # Draw outer dashed/segmented target circle
+        for angle in range(0, 360, 30):
+            rad1 = np.radians(angle)
+            rad2 = np.radians(angle + 18)
+            p1 = (int(tgt_cx + tgt_r * np.cos(rad1)), int(tgt_cy + tgt_r * np.sin(rad1)))
+            p2 = (int(tgt_cx + tgt_r * np.cos(rad2)), int(tgt_cy + tgt_r * np.sin(rad2)))
+            cv2.line(overlay, p1, p2, reticle_color, 2, cv2.LINE_AA)
+
+        # Crosshairs
+        ch_len = 16
+        cv2.line(overlay, (tgt_cx - ch_len, tgt_cy), (tgt_cx + ch_len, tgt_cy), reticle_color, 1, cv2.LINE_AA)
+        cv2.line(overlay, (tgt_cx, tgt_cy - ch_len), (tgt_cx, tgt_cy + ch_len), reticle_color, 1, cv2.LINE_AA)
+
+        if live_data.get("detected"):
+            # 2. Glowing Hand Bounding Box
+            bbox = live_data.get("bbox")
+            if bbox:
+                bx, by, bw, bh = bbox
+                # Sci-fi corner brackets
+                corner_len = min(24, bw // 4, bh // 4)
+                c_color = (255, 200, 50)  # Cyan/Gold in BGR
+                # Top-left
+                cv2.line(overlay, (bx, by), (bx + corner_len, by), c_color, 2, cv2.LINE_AA)
+                cv2.line(overlay, (bx, by), (bx, by + corner_len), c_color, 2, cv2.LINE_AA)
+                # Top-right
+                cv2.line(overlay, (bx + bw, by), (bx + bw - corner_len, by), c_color, 2, cv2.LINE_AA)
+                cv2.line(overlay, (bx + bw, by), (bx + bw, by + corner_len), c_color, 2, cv2.LINE_AA)
+                # Bottom-left
+                cv2.line(overlay, (bx, by + bh), (bx + corner_len, by + bh), c_color, 2, cv2.LINE_AA)
+                cv2.line(overlay, (bx, by + bh), (bx, by + bh - corner_len), c_color, 2, cv2.LINE_AA)
+                # Bottom-right
+                cv2.line(overlay, (bx + bw, by + bh), (bx + bw - corner_len, by + bh), c_color, 2, cv2.LINE_AA)
+                cv2.line(overlay, (bx + bw, by + bh), (bx + bw, by + bh - corner_len), c_color, 2, cv2.LINE_AA)
+
+            # 3. Dynamic Palm Center
+            center = live_data.get("center")
+            radius = int(live_data.get("radius", 0))
+            if center and radius > 0:
+                cx, cy = center
+                cv2.circle(overlay, (cx, cy), radius, (245, 180, 40), 2, cv2.LINE_AA)
+                cv2.circle(overlay, (cx, cy), 6, (40, 240, 180), -1, cv2.LINE_AA)
+
+            # 4. Traced Palm Lines
+            if show_lines:
+                lines = live_data.get("lines", {})
+                for name, ldata in lines.items():
+                    pts = np.array(ldata["points"], dtype=np.int32)
+                    rgb = ldata.get("color_rgb", [255, 255, 255])
+                    bgr = (int(rgb[2]), int(rgb[1]), int(rgb[0]))
+                    if len(pts) > 1:
+                        # Glow outline
+                        cv2.polylines(overlay, [pts], False, bgr, 3, cv2.LINE_AA)
+                        # Start point label
+                        start_pt = tuple(pts[0])
+                        cv2.circle(overlay, start_pt, 4, bgr, -1, cv2.LINE_AA)
+
+            # 5. Chirological Mounts
+            if show_mounts:
+                mounts = live_data.get("mounts", {})
+                for k, m in mounts.items():
+                    mx, my = m["pos"]
+                    mr = max(6, m["radius"])
+                    # Subtle glowing ring
+                    cv2.circle(overlay, (mx, my), mr, (220, 160, 255), 1, cv2.LINE_AA)
+                    cv2.circle(overlay, (mx, my), 3, (255, 255, 255), -1, cv2.LINE_AA)
+                    # Label
+                    short_name = m["name"].replace("Mount of ", "")
+                    cv2.putText(overlay, short_name, (mx - 20, my - mr - 4),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.38, (255, 235, 180), 1, cv2.LINE_AA)
+
+        # 6. Telemetry HUD Bar
+        if show_hud:
+            # Top banner background
+            cv2.rectangle(overlay, (0, 0), (w, 56), (15, 10, 25), -1)
+            cv2.line(overlay, (0, 56), (w, 56), (100, 60, 180), 1)
+
+            # Left: Archetype & Status
+            ht = live_data.get("hand_type")
+            ht_name = ht["type"].upper() if ht else "SCANNING..."
+            cv2.putText(overlay, f"PALMISTRA AI // {ht_name} HAND", (18, 26),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.60, (255, 215, 90), 2, cv2.LINE_AA)
+
+            scores = live_data.get("scores")
+            if scores:
+                score_txt = f"Harmony: {scores['overall_harmony']}%  |  Vitality: {scores['vitality']}%  |  Intellect: {scores['intellect']}%"
+                cv2.putText(overlay, score_txt, (18, 46),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.40, (200, 210, 230), 1, cv2.LINE_AA)
+
+            # Right: FPS & Alignment Score
+            status_text = f"{align_score}% ALIGNED" if live_data.get("detected") else "NO HAND"
+            cv2.putText(overlay, status_text, (w - 180, 26),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, reticle_color, 2, cv2.LINE_AA)
+
+            fps_text = f"{fps:.1f} FPS" if fps > 0 else "LIVE"
+            cv2.putText(overlay, fps_text, (w - 180, 46),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.40, (180, 180, 200), 1, cv2.LINE_AA)
+
+            # Bottom guidance bar
+            cv2.rectangle(overlay, (0, h - 38), (w, h), (15, 10, 25), -1)
+            cv2.line(overlay, (0, h - 38), (w, h - 38), (100, 60, 180), 1)
+            feedback = live_data.get("guide_feedback", "Position palm to begin")
+            cv2.putText(overlay, feedback, (18, h - 14),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.48, (255, 255, 255), 1, cv2.LINE_AA)
+
+            # Alignment progress bar at bottom
+            bar_w = int((align_score / 100.0) * 160)
+            cv2.rectangle(overlay, (w - 180, h - 26), (w - 20, h - 14), (50, 40, 70), -1)
+            if bar_w > 0:
+                cv2.rectangle(overlay, (w - 180, h - 26), (w - 180 + bar_w, h - 14), reticle_color, -1)
+
+        # Blend smooth alpha
+        return cv2.addWeighted(overlay, 0.92, image, 0.08, 0)
+

@@ -44,6 +44,14 @@ class Base64AnalyzeRequest(BaseModel):
     image: str  # Base64 string or data URL
 
 
+class LiveDetectRequest(BaseModel):
+    image: str  # Base64 string or data URL
+    mirror: Optional[bool] = False
+    target_x: Optional[int] = None
+    target_y: Optional[int] = None
+    target_r: Optional[float] = None
+
+
 def image_to_base64_data_uri(img: np.ndarray, format: str = "png") -> str:
     """Encodes an OpenCV image to a base64 Data URI."""
     success, buffer = cv2.imencode(f".{format}", img)
@@ -180,6 +188,19 @@ async def analyze_image_base64(payload: Base64AnalyzeRequest):
     img = decode_base64_image(payload.image)
     result = run_pipeline(img)
     return JSONResponse(content=result)
+
+
+@app.post("/api/detect-live")
+async def detect_live_frame(payload: LiveDetectRequest):
+    """Ultra-fast live detection endpoint for camera streams."""
+    img = decode_base64_image(payload.image)
+    if payload.mirror:
+        img = cv2.flip(img, 1)
+
+    tgt_center = (payload.target_x, payload.target_y) if (payload.target_x is not None and payload.target_y is not None) else None
+    result = detector.detect_live(img, target_center=tgt_center, target_radius=payload.target_r)
+    return JSONResponse(content=result)
+
 
 
 @app.post("/api/analyze-sample/{sample_id}")
