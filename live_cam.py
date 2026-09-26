@@ -46,7 +46,9 @@ def capture_and_analyze(frame: np.ndarray, output_dir: str = "output"):
     mounts = det_res["mounts"]
     hand_type = det_res["hand_type"]
 
-    ext_res = extractor.process(roi, mounts)
+    thumb_side = det_res.get("thumb_side", "left")
+    roi_mask = det_res.get("roi_hand_mask")
+    ext_res = extractor.process(roi, mounts, thumb_side=thumb_side, hand_mask=roi_mask)
     lines = ext_res["lines"]
     visuals = ext_res["visualizations"]
 
@@ -66,7 +68,7 @@ def capture_and_analyze(frame: np.ndarray, output_dir: str = "output"):
     lines_read = reading["lines"]
 
     print("\n" + "-" * 62)
-    print(f" ELEMENTAL HAND ARCHETYPE: {elem['archetype'].upper()}")
+    print(f" ELEMENTAL HAND ARCHETYPE: {elem['archetype'].upper()} ({thumb_side.upper()} THUMB)")
     print(f" Motto: \"{elem['motto']}\"")
     print("-" * 62)
     print(f" Harmony Score : {scores['overall_harmony']}/100")
@@ -97,11 +99,24 @@ def run_live_camera(
     cap = None
     if not mock_mode:
         print(f"[*] Opening webcam index {cam_index} (Resolution: {width}x{height})...")
-        cap = cv2.VideoCapture(cam_index, cv2.CAP_DSHOW if sys.platform.startswith("win") else cv2.CAP_ANY)
+        backend = cv2.CAP_DSHOW if sys.platform.startswith("win") else cv2.CAP_ANY
+        cap = cv2.VideoCapture(cam_index, backend)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-        if not cap.isOpened():
+        if not cap.isOpened() and sys.platform.startswith("win"):
+            print(f"[*] Retrying camera {cam_index} with CAP_ANY...")
+            cap = cv2.VideoCapture(cam_index, cv2.CAP_ANY)
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+
+        if not cap.isOpened() and cam_index == 0:
+            print("[*] Retrying camera index 1...")
+            cap = cv2.VideoCapture(1, cv2.CAP_DSHOW if sys.platform.startswith("win") else cv2.CAP_ANY)
+            if cap.isOpened():
+                print("[+] Successfully opened camera index 1!")
+
+        if not cap or not cap.isOpened():
             print(f"[!] Warning: Could not open camera {cam_index}.")
             print("[*] Falling back to Simulated Mock Camera using sample palm...")
             mock_mode = True

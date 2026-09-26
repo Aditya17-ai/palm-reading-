@@ -46,8 +46,10 @@ def analyze_palm_image(image_path: str, output_dir: str = "output"):
     hand_type = det_res["hand_type"]
 
     # 2. Line Extraction
-    print("[*] Applying multi-scale Frangi ridge filters & tracing major lines...")
-    ext_res = extractor.process(roi, mounts)
+    print("[*] Applying multi-scale ridge filters & tracing major lines...")
+    thumb_side = det_res.get("thumb_side", "left")
+    roi_mask = det_res.get("roi_hand_mask")
+    ext_res = extractor.process(roi, mounts, thumb_side=thumb_side, hand_mask=roi_mask)
     lines = ext_res["lines"]
     visuals = ext_res["visualizations"]
 

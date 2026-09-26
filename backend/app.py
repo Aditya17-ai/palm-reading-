@@ -89,8 +89,10 @@ def run_pipeline(img: np.ndarray) -> dict:
     mounts = det_res["mounts"]
     hand_type = det_res["hand_type"]
 
-    # 2. Line Extraction & Ridge Filtering
-    ext_res = extractor.process(roi, mounts)
+    # 2. Line Extraction & Ridge Filtering with Handedness & Mask
+    thumb_side = det_res.get("thumb_side", "left")
+    roi_mask = det_res.get("roi_hand_mask")
+    ext_res = extractor.process(roi, mounts, thumb_side=thumb_side, hand_mask=roi_mask)
     lines = ext_res["lines"]
     visuals = ext_res["visualizations"]
 

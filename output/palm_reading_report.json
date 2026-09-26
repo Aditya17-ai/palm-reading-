@@ -4,7 +4,7 @@
       "element": "Fire",
       "archetype": "Fire Hand Archetype",
       "motto": "Passionate courage, magnetic leadership, and radiant inspiration.",
-      "description": "Fire Hand: Long, vibrant palm with dynamic posture. Driven by boundless passion, charisma, adventurous spirit, and natural leadership.",
+      "description": "Fire Hand: Long, vibrant palm with dynamic posture. Boundless passion, charisma, adventurous spirit, and natural leadership.",
       "strengths": [
         "Charismatic motivator",
         "Fearless pioneer",
@@ -12,50 +12,50 @@
       ]
     },
     "scores": {
-      "overall_harmony": 46,
-      "vitality": 45,
-      "intellect": 59,
-      "heart_harmony": 42,
-      "destiny": 40
+      "overall_harmony": 59,
+      "vitality": 69,
+      "intellect": 58,
+      "heart_harmony": 56,
+      "destiny": 54
     },
     "lines": {
       "life": {
         "title": "Life Line (Vitality & Life Path)",
-        "score": 45,
-        "curve_pattern": "Gracefully contoured arc with steady curvature.",
-        "vitality_trait": "Harmonious balance between activity and rest, consistent endurance, and steady energy reserves.",
+        "score": 69,
+        "curve_pattern": "Wide, sweeping crescent wrapping generously around the Mount of Venus.",
+        "vitality_trait": "Expansive life force, high physical stamina, warmth, and generous hospitality.",
         "resilience": "Higher nervous and spiritual energy; benefits greatly from meditation, nature grounding, and mindful nutrition.",
-        "journey": "Focused trajectory indicating high intentionality and decisive milestones.",
+        "journey": "Long, continuous path reflecting a rich, multifaceted life journey filled with diverse chapters.",
         "clarity": "Delicate / Subtle",
-        "summary": "Harmonious balance between activity and rest, consistent endurance, and steady energy reserves. Higher nervous and spiritual energy; benefits greatly from meditation, nature grounding, and mindful nutrition. Focused trajectory indicating high intentionality and decisive milestones."
+        "summary": "Expansive life force, high physical stamina, warmth, and generous hospitality. Higher nervous and spiritual energy; benefits greatly from meditation, nature grounding, and mindful nutrition. Long, continuous path reflecting a rich, multifaceted life journey filled with diverse chapters."
       },
       "head": {
         "title": "Head Line (Wisdom & Mental Faculties)",
-        "score": 59,
-        "slope_pattern": "Slopes gently toward the Mount of Luna (the realm of imagination).",
-        "intellect_style": "Creative, intuitive thinker gifted with artistic visualization, psychological insight, and original solutions.",
+        "score": 58,
+        "slope_pattern": "Traverses straight across the palm toward the Mount of Mars.",
+        "intellect_style": "Sharp analytical mindset grounded in logic, realism, empirical evidence, and pragmatic execution.",
         "focus_level": "Agile, nimble thought process with curiosity spanning many simultaneous interests.",
-        "career_aptitude": "Innovation, design, strategy, psychology, writing, and creative direction.",
-        "clarity": "Delicate / Subtle",
-        "summary": "Creative, intuitive thinker gifted with artistic visualization, psychological insight, and original solutions. Agile, nimble thought process with curiosity spanning many simultaneous interests. Best suited for environments requiring innovation, design, strategy, psychology, writing, and creative direction.."
+        "career_aptitude": "Technology, engineering, quantitative research, executive management, and structured systems.",
+        "clarity": "Moderate",
+        "summary": "Sharp analytical mindset grounded in logic, realism, empirical evidence, and pragmatic execution. Agile, nimble thought process with curiosity spanning many simultaneous interests. Best suited for environments requiring technology, engineering, quantitative research, executive management, and structured systems.."
       },
       "heart": {
         "title": "Heart Line (Emotional Temperament & Romance)",
-        "score": 42,
-        "curve_pattern": "Harmoniously curved line ending between Jupiter and Saturn.",
-        "romantic_style": "Emotionally mature and discerning. Balances passionate affection with healthy relational boundaries and thoughtful loyalty.",
-        "empathy_type": "Grounded empathy; offers calm perspective and enduring stability.",
-        "clarity": "Delicate / Subtle",
-        "summary": "Emotionally mature and discerning. Balances passionate affection with healthy relational boundaries and thoughtful loyalty. Grounded empathy; offers calm perspective and enduring stability."
+        "score": 56,
+        "curve_pattern": "Direct, steady horizontal line.",
+        "romantic_style": "Pragmatic and composed in affections. Expresses love through tangible dedication, loyalty, and steadfast acts of service.",
+        "empathy_type": "Stoic resilience; handles interpersonal challenges with serene composure.",
+        "clarity": "Moderate",
+        "summary": "Pragmatic and composed in affections. Expresses love through tangible dedication, loyalty, and steadfast acts of service. Stoic resilience; handles interpersonal challenges with serene composure."
       },
       "fate": {
         "title": "Fate Line (Destiny & Career Alignment)",
-        "score": 40,
-        "presence": "Subtle, fluid crease reflecting sovereign self-determination.",
-        "destiny_style": "Unbounded destiny unconstrained by conventional tracks; thrives on personal freedom, adaptability, and personal mastery.",
-        "vocation": "Innovative pioneer, freelance consultant, lifelong explorer.",
-        "clarity": "Delicate / Subtle",
-        "summary": "Subtle, fluid crease reflecting sovereign self-determination. Unbounded destiny unconstrained by conventional tracks; thrives on personal freedom, adaptability, and personal mastery. Propels you toward innovative pioneer, freelance consultant, lifelong explorer.."
+        "score": 54,
+        "presence": "Emergent, flexible path adapting gracefully to evolving ambitions.",
+        "destiny_style": "Dynamic career journey characterized by self-reinvention, expanding horizons, and timely opportunities.",
+        "vocation": "Multidisciplinary career, collaborative ventures, creative independence.",
+        "clarity": "Clear & Well-Defined",
+        "summary": "Emergent, flexible path adapting gracefully to evolving ambitions. Dynamic career journey characterized by self-reinvention, expanding horizons, and timely opportunities. Propels you toward multidisciplinary career, collaborative ventures, creative independence.."
       }
     },
     "mounts": [
@@ -108,22 +108,22 @@
   "line_metrics": {
     "Heart": {
       "metrics": {
-        "length": 240.5,
-        "normalized_length": 52.2,
-        "curvature": 1.09,
-        "depth_score": 16,
-        "clarity": "Delicate / Subtle",
-        "angle": 104.2,
+        "length": 313.2,
+        "normalized_length": 68.0,
+        "curvature": 1.03,
+        "depth_score": 37,
+        "clarity": "Moderate",
+        "angle": -179.2,
         "start_point": [
-          89,
-          3
+          431,
+          180
         ],
         "end_point": [
-          35,
-          217
+          127,
+          176
         ]
       },
-      "points_count": 35,
+      "points_count": 79,
       "color_bgr": [
         230,
         40,
@@ -132,22 +132,22 @@
     },
     "Head": {
       "metrics": {
-        "length": 617.3,
-        "normalized_length": 100.0,
-        "curvature": 1.17,
-        "depth_score": 10,
-        "clarity": "Delicate / Subtle",
-        "angle": 106.6,
+        "length": 294.5,
+        "normalized_length": 63.9,
+        "curvature": 1.01,
+        "depth_score": 40,
+        "clarity": "Moderate",
+        "angle": 9.3,
         "start_point": [
-          495,
-          2
+          116,
+          211
         ],
         "end_point": [
-          344,
-          508
+          404,
+          258
         ]
       },
-      "points_count": 35,
+      "points_count": 75,
       "color_bgr": [
         50,
         160,
@@ -156,22 +156,22 @@
     },
     "Life": {
       "metrics": {
-        "length": 276.2,
-        "normalized_length": 59.9,
-        "curvature": 1.13,
-        "depth_score": 13,
+        "length": 437.8,
+        "normalized_length": 95.0,
+        "curvature": 1.97,
+        "depth_score": 14,
         "clarity": "Delicate / Subtle",
-        "angle": 54.7,
+        "angle": 90.8,
         "start_point": [
-          -13,
-          309
+          162,
+          222
         ],
         "end_point": [
-          128,
-          508
+          159,
+          444
         ]
       },
-      "points_count": 35,
+      "points_count": 36,
       "color_bgr": [
         40,
         210,
@@ -180,22 +180,22 @@
     },
     "Fate": {
       "metrics": {
-        "length": 28.2,
-        "normalized_length": 6.1,
-        "curvature": 1.11,
-        "depth_score": 28,
-        "clarity": "Delicate / Subtle",
-        "angle": 78.7,
+        "length": 290.7,
+        "normalized_length": 63.1,
+        "curvature": 1.01,
+        "depth_score": 53,
+        "clarity": "Clear & Well-Defined",
+        "angle": -94.4,
         "start_point": [
-          239,
-          88
+          261,
+          436
         ],
         "end_point": [
-          244,
-          113
+          239,
+          148
         ]
       },
-      "points_count": 35,
+      "points_count": 75,
       "color_bgr": [
         240,
         190,

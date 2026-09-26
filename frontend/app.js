@@ -420,17 +420,48 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       if (cameraStream) stopCamera();
 
-      cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: currentFacingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        audio: false
-      });
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Your browser does not support camera access (getUserMedia).');
+      }
+
+      // 1. Try with ideal constraints, then fallback progressively
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: currentFacingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+      } catch (err1) {
+        console.warn('Ideal camera constraints failed, attempting facingMode fallback...', err1);
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: currentFacingMode },
+            audio: false
+          });
+        } catch (err2) {
+          console.warn('FacingMode failed, falling back to basic video...', err2);
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          });
+        }
+      }
 
       cameraFeed.srcObject = cameraStream;
+      cameraFeed.setAttribute('playsinline', '');
+      cameraFeed.setAttribute('webkit-playsinline', '');
+      cameraFeed.muted = true;
       cameraFeed.classList.toggle('rear-cam', currentFacingMode === 'environment');
+
+      try {
+        await cameraFeed.play();
+      } catch (playErr) {
+        console.warn('cameraFeed.play warning:', playErr);
+      }
+
       btnStartCamera.style.display = 'none';
       btnCapturePhoto.style.display = 'inline-flex';
       btnStopCamera.style.display = 'inline-flex';
@@ -444,17 +475,27 @@ document.addEventListener('DOMContentLoaded', () => {
       if (hudArchetypeBadge) hudArchetypeBadge.style.display = 'inline-flex';
       if (liveTelemetryDrawer) liveTelemetryDrawer.style.display = 'grid';
 
-      cameraFeed.onloadedmetadata = () => {
+      const setupActiveStream = () => {
+        if (cameraFeed.videoWidth && cameraFeed.videoHeight) {
+          if (cameraViewportContainer) {
+            cameraViewportContainer.style.aspectRatio = `${cameraFeed.videoWidth} / ${cameraFeed.videoHeight}`;
+          }
+        }
         syncCanvasDimensions();
         isDetectingLive = true;
         autoCaptureStartTime = null;
         runDetectionLoop();
         runARRenderLoop();
       };
+
+      if (cameraFeed.readyState >= 2) {
+        setupActiveStream();
+      } else {
+        cameraFeed.onloadedmetadata = setupActiveStream;
+      }
     } catch (err) {
       console.warn('Camera access error:', err);
-      alert('Camera access could not be initialized or permission was denied. You can still upload a photo or select an archetype preset!');
-      switchTab('upload');
+      alert('Camera access could not be initialized (' + (err.message || 'permission denied') + '). Please ensure your webcam is connected and permission is granted in your browser.');
     }
   }
 
@@ -751,19 +792,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (latestDetection && latestDetection.detected) {
       const data = latestDetection;
 
+      // Coordinate scaling between backend frame size and canvas resolution
+      const fw = (data.frame_size && data.frame_size.width) || (data.bbox ? (data.bbox[0] + data.bbox[2]) : 320);
+      const fh = (data.frame_size && data.frame_size.height) || (data.bbox ? (data.bbox[1] + data.bbox[3]) : 240);
+      const scaleX = cw / Math.max(1, fw);
+      const scaleY = ch / Math.max(1, fh);
+
       // Smooth interpolation (lerp factor 0.35)
       smoothedData.cx = smoothedData.cx !== null ? smoothedData.cx + (data.center[0] - smoothedData.cx) * 0.35 : data.center[0];
       smoothedData.cy = smoothedData.cy !== null ? smoothedData.cy + (data.center[1] - smoothedData.cy) * 0.35 : data.center[1];
       smoothedData.radius = smoothedData.radius ? smoothedData.radius + (data.radius - smoothedData.radius) * 0.35 : data.radius;
 
-      const px = smoothedData.cx;
-      const py = smoothedData.cy;
-      const pr = smoothedData.radius;
+      const px = smoothedData.cx * scaleX;
+      const py = smoothedData.cy * scaleY;
+      const pr = smoothedData.radius * scaleX;
 
       // Hand Bounding Box with Glowing Sci-Fi Corner Brackets
       if (data.bbox) {
-        const [bx, by, bw, bh] = data.bbox;
+        const [raw_bx, raw_by, raw_bw, raw_bh] = data.bbox;
+        const bx = raw_bx * scaleX;
+        const by = raw_by * scaleY;
+        const bw = raw_bw * scaleX;
+        const bh = raw_bh * scaleY;
         const cornerLen = Math.min(26, bw * 0.25, bh * 0.25);
+
         ctx.save();
         ctx.strokeStyle = isAligned ? '#10b981' : '#06b6d4';
         ctx.lineWidth = 2.5;
@@ -836,23 +888,27 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.restore();
       }
 
-      // Live Traced Palm Lines
+      // Live Traced Real Palm Lines
       if (arLinesEnabled && data.lines) {
         ctx.save();
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
         for (const [lineName, lineObj] of Object.entries(data.lines)) {
-          const pts = lineObj.points;
-          if (!pts || pts.length < 2) continue;
+          const rawPts = lineObj.points;
+          if (!rawPts || rawPts.length < 2) continue;
+
+          // Scale line points to canvas resolution
+          const pts = rawPts.map(p => [p[0] * scaleX, p[1] * scaleY]);
 
           const rgb = lineObj.color_rgb || [255, 255, 255];
           const colorHex = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
 
+          // Outer Glow Stroke
           ctx.strokeStyle = colorHex;
           ctx.shadowColor = colorHex;
-          ctx.shadowBlur = 12;
-          ctx.lineWidth = 3.5;
+          ctx.shadowBlur = 14;
+          ctx.lineWidth = 4.2;
 
           ctx.beginPath();
           ctx.moveTo(pts[0][0], pts[0][1]);
@@ -861,12 +917,25 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           ctx.stroke();
 
+          // Core Highlight Stroke
+          ctx.lineWidth = 1.8;
+          ctx.strokeStyle = '#ffffff';
+          ctx.shadowBlur = 4;
+          ctx.stroke();
+
           // Endpoint Pulse Marker
           ctx.beginPath();
-          ctx.arc(pts[0][0], pts[0][1], 4, 0, Math.PI * 2);
+          ctx.arc(pts[0][0], pts[0][1], 5, 0, Math.PI * 2);
           ctx.fillStyle = '#ffffff';
-          ctx.shadowBlur = 6;
+          ctx.shadowBlur = 8;
           ctx.fill();
+
+          // Line Label Tag
+          ctx.font = '600 12px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = colorHex;
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+          ctx.shadowBlur = 6;
+          ctx.fillText(`${lineName} Line`, pts[0][0] + 8, pts[0][1] - 4);
         }
         ctx.restore();
       }
@@ -878,8 +947,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.textAlign = 'center';
 
         for (const [key, mount] of Object.entries(data.mounts)) {
-          const [mx, my] = mount.pos;
-          const mr = mount.radius || 16;
+          const mx = mount.pos[0] * scaleX;
+          const my = mount.pos[1] * scaleY;
+          const mr = (mount.radius || 16) * scaleX;
           const glyph = mountGlyphs[key] || '✦';
           const shortName = mount.name.replace('Mount of ', '').replace(' / Apollo', '').replace(' / Moon', '');
 
