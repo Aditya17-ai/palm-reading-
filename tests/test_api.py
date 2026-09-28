@@ -59,7 +59,31 @@ class TestPalmAPI(unittest.TestCase):
         self.assertIn("lines", data)
         self.assertIn("alignment_score", data)
         self.assertIn("scores", data)
-        print(f"Live Detection Test Success! Archetype: {data['hand_type']['type']}, Alignment: {data['alignment_score']}%")
+    def test_line_tracing_correctness(self):
+        """Verifies that the lines traced have authentic anatomical coordinates and curvature."""
+        response = self.client.post("/api/analyze-sample/earth")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        lines = data["lines"]
+
+        for expected in ["Heart", "Head", "Life", "Fate"]:
+            self.assertIn(expected, lines)
+            pts = lines[expected]["points"]
+            self.assertTrue(len(pts) >= 10, f"{expected} line points count too low: {len(pts)}")
+            metrics = lines[expected]["metrics"]
+            self.assertIn("curvature", metrics)
+            self.assertIn("length", metrics)
+            self.assertTrue(metrics["length"] > 50, f"{expected} length too short")
+
+        # Life line: verify starts in upper-left and ends in lower palm
+        life_pts = lines["Life"]["points"]
+        self.assertTrue(life_pts[0][1] < life_pts[-1][1], "Life line must travel vertically downward")
+
+        # Fate line: verify starts low and ascends high
+        fate_pts = lines["Fate"]["points"]
+        self.assertTrue(fate_pts[0][1] > fate_pts[-1][1], "Fate line must ascend towards top/Saturn mount")
+
+        print("Line Tracing Correctness Verified! Heart, Head, Life, Fate lines correctly positioned.")
 
 
 if __name__ == "__main__":

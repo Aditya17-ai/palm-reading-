@@ -401,126 +401,193 @@ class PalmDetector:
         # Step size for DP tracking
         step = 4 if fast_mode else 2
 
-        # 2. Vectorized DP helpers for horizontal & vertical paths
-        def dp_trace_horizontal(xs: List[int], y_min: int, y_max: int, penalty: float = 1.6) -> List[List[int]]:
-            if len(xs) < 2:
-                return []
-            y_min = max(0, min(h - 2, y_min))
-            y_max = max(y_min + 2, min(h, y_max))
-            H_band = y_max - y_min
-            valid_xs = [x for x in xs if 0 <= x < w]
-            if len(valid_xs) < 2:
-                return []
+        # 2. Anatomical Crease Line Tracing
+        # -------------------------------------------------------------
+        # 1. HEART LINE
+        # -------------------------------------------------------------
+        y_min_heart, y_max_heart = int(0.16 * h), int(0.42 * h)
+        if thumb_side == "left":
+            mx_start, mx_end = int(0.70 * w), int(0.86 * w)
+            strip = norm_map[y_min_heart:y_max_heart, mx_start:mx_end]
+            if strip.size > 0 and strip.max() > 18:
+                py, px = np.unravel_index(np.argmax(strip), strip.shape)
+                start_x = mx_start + px
+                start_y = y_min_heart + py
+            else:
+                start_x = int(0.80 * w)
+                start_y = int(0.26 * h)
+            xs_heart = list(range(start_x, int(0.20 * w), -step))
+        else:
+            mx_start, mx_end = int(0.14 * w), int(0.30 * w)
+            strip = norm_map[y_min_heart:y_max_heart, mx_start:mx_end]
+            if strip.size > 0 and strip.max() > 18:
+                py, px = np.unravel_index(np.argmax(strip), strip.shape)
+                start_x = mx_start + px
+                start_y = y_min_heart + py
+            else:
+                start_x = int(0.20 * w)
+                start_y = int(0.26 * h)
+            xs_heart = list(range(start_x, int(0.80 * w), step))
 
-            cost_grid = -norm_map[y_min:y_max, valid_xs]
-            dp = np.zeros_like(cost_grid)
+        heart_pts = []
+        if len(xs_heart) >= 4:
+            cur_x, cur_y = xs_heart[0], start_y
+            heart_pts = [[cur_x, cur_y]]
+            for nx in xs_heart[1:]:
+                search_ys = range(max(y_min_heart, cur_y - 5), min(y_max_heart, cur_y + 6))
+                if not search_ys:
+                    break
+                weights = [norm_map[sy, nx] - abs(sy - cur_y) * 2.8 for sy in search_ys]
+                best_y = search_ys[int(np.argmax(weights))]
+                cur_y = best_y
+                heart_pts.append([nx, cur_y])
+            while len(heart_pts) > 20 and norm_map[heart_pts[-1][1], heart_pts[-1][0]] < 14:
+                heart_pts.pop()
+            heart_pts = smooth_points(heart_pts, 5)
+
+        # -------------------------------------------------------------
+        # 2. HEAD LINE
+        # -------------------------------------------------------------
+        y_min_head, y_max_head = int(0.30 * h), int(0.68 * h)
+        if thumb_side == "left":
+            mx_start, mx_end = int(0.18 * w), int(0.32 * w)
+            strip = norm_map[y_min_head:int(0.48 * h), mx_start:mx_end]
+            if strip.size > 0 and strip.max() > 18:
+                py, px = np.unravel_index(np.argmax(strip), strip.shape)
+                start_x = mx_start + px
+                start_y = y_min_head + py
+            else:
+                start_x = int(0.22 * w)
+                start_y = int(0.38 * h)
+            xs_head = list(range(start_x, int(0.82 * w), step))
+        else:
+            mx_start, mx_end = int(0.68 * w), int(0.82 * w)
+            strip = norm_map[y_min_head:int(0.48 * h), mx_start:mx_end]
+            if strip.size > 0 and strip.max() > 18:
+                py, px = np.unravel_index(np.argmax(strip), strip.shape)
+                start_x = mx_start + px
+                start_y = y_min_head + py
+            else:
+                start_x = int(0.78 * w)
+                start_y = int(0.38 * h)
+            xs_head = list(range(start_x, int(0.18 * w), -step))
+
+        head_pts = []
+        if len(xs_head) >= 4:
+            H_band = y_max_head - y_min_head
+            W_col = len(xs_head)
+            cost_grid = - (norm_map[y_min_head:y_max_head, xs_head] / 255.0) ** 1.5 * 10.0
+            dp = np.zeros((H_band, W_col), dtype=np.float32)
             dp[:, 0] = cost_grid[:, 0]
-            backtrack = np.zeros_like(cost_grid, dtype=np.int32)
+            anchor_r = np.clip(start_y - y_min_head, 0, H_band - 1)
+            dp[:, 0] += (np.abs(np.arange(H_band) - anchor_r) ** 1.3) * 0.5
+            backtrack = np.zeros((H_band, W_col), dtype=np.int32)
 
-            for c in range(1, len(valid_xs)):
-                prev = dp[:, c - 1]
-                s0 = prev
-                s_m1 = np.pad(prev[:-1], (1, 0), constant_values=1e6) + penalty
-                s_p1 = np.pad(prev[1:], (0, 1), constant_values=1e6) + penalty
-                s_m2 = np.pad(prev[:-2], (2, 0), constant_values=1e6) + penalty * 2.2
-                s_p2 = np.pad(prev[2:], (0, 2), constant_values=1e6) + penalty * 2.2
-                stacked = np.stack([s_m2, s_m1, s0, s_p1, s_p2], axis=0)
-                best_shift_idx = np.argmin(stacked, axis=0)
-                dp[:, c] = np.take_along_axis(stacked, best_shift_idx[None, :], axis=0).squeeze() + cost_grid[:, c]
-                backtrack[:, c] = np.clip(np.arange(H_band) + (best_shift_idx - 2), 0, H_band - 1)
+            for c in range(1, W_col):
+                col_cost = cost_grid[:, c]
+                for r in range(H_band):
+                    best_pr = r
+                    best_val = 1e9
+                    for dr in range(-4, 5):
+                        pr = r + dr
+                        if 0 <= pr < H_band:
+                            t_cost = dp[pr, c - 1] + (abs(dr) ** 1.4) * 0.35
+                            if t_cost < best_val:
+                                best_val = t_cost
+                                best_pr = pr
+                    dp[r, c] = best_val + col_cost[r]
+                    backtrack[r, c] = best_pr
 
-            best_r = int(np.argmin(dp[:, -1]))
-            pts = []
-            for c in range(len(valid_xs) - 1, -1, -1):
-                pts.append([int(valid_xs[c]), int(best_r + y_min)])
-                best_r = int(backtrack[best_r, c])
-            return pts[::-1]
+            best_end_r = int(np.argmin(dp[:, -1]))
+            traced_ys = [best_end_r + y_min_head]
+            for c in range(W_col - 1, 0, -1):
+                best_end_r = backtrack[best_end_r, c]
+                traced_ys.append(best_end_r + y_min_head)
+            traced_ys = traced_ys[::-1]
+            head_pts = [[xs_head[i], traced_ys[i]] for i in range(W_col)]
+            while len(head_pts) > 20 and norm_map[head_pts[-1][1], head_pts[-1][0]] < 14:
+                head_pts.pop()
+            head_pts = smooth_points(head_pts, 5)
 
-        def dp_trace_vertical(ys: List[int], x_min: int, x_max: int, penalty: float = 1.8) -> List[List[int]]:
-            if len(ys) < 2:
-                return []
-            x_min = max(0, min(w - 2, x_min))
-            x_max = max(x_min + 2, min(w, x_max))
-            W_band = x_max - x_min
-            valid_ys = [y for y in ys if 0 <= y < h]
-            if len(valid_ys) < 2:
-                return []
-
-            cost_grid = -norm_map[valid_ys, x_min:x_max].T
-            dp = np.zeros_like(cost_grid)
-            dp[:, 0] = cost_grid[:, 0]
-            backtrack = np.zeros_like(cost_grid, dtype=np.int32)
-
-            for c in range(1, len(valid_ys)):
-                prev = dp[:, c - 1]
-                s0 = prev
-                s_m1 = np.pad(prev[:-1], (1, 0), constant_values=1e6) + penalty
-                s_p1 = np.pad(prev[1:], (0, 1), constant_values=1e6) + penalty
-                s_m2 = np.pad(prev[:-2], (2, 0), constant_values=1e6) + penalty * 2.2
-                s_p2 = np.pad(prev[2:], (0, 2), constant_values=1e6) + penalty * 2.2
-                stacked = np.stack([s_m2, s_m1, s0, s_p1, s_p2], axis=0)
-                best_shift_idx = np.argmin(stacked, axis=0)
-                dp[:, c] = np.take_along_axis(stacked, best_shift_idx[None, :], axis=0).squeeze() + cost_grid[:, c]
-                backtrack[:, c] = np.clip(np.arange(W_band) + (best_shift_idx - 2), 0, W_band - 1)
-
-            best_c = int(np.argmin(dp[:, -1]))
-            pts = []
-            for c in range(len(valid_ys) - 1, -1, -1):
-                pts.append([int(best_c + x_min), int(valid_ys[c])])
-                best_c = int(backtrack[best_c, c])
-            return pts[::-1]
-
-        # 3. Trace Heart Line
+        # -------------------------------------------------------------
+        # 3. LIFE LINE
+        # -------------------------------------------------------------
         if thumb_side == "left":
-            xs_heart = list(range(int(0.85 * w), int(0.24 * w), -step))
-            heart_pts = dp_trace_horizontal(xs_heart, int(0.18 * h), int(0.42 * h), penalty=1.6)
+            x_min_l, x_max_l = int(0.18 * w), int(0.28 * w)
+            y_s_min, y_s_max = int(0.36 * h), int(0.48 * h)
+            strip = norm_map[y_s_min:y_s_max, x_min_l:x_max_l]
+            if strip.size > 0 and strip.max() > 18:
+                py, px = np.unravel_index(np.argmax(strip), strip.shape)
+                start_x = x_min_l + px
+                start_y = y_s_min + py
+            else:
+                start_x = int(0.24 * w)
+                start_y = int(0.40 * h)
+
+            cur_x, cur_y = start_x, start_y
+            life_pts = [[cur_x, cur_y]]
+            for ny in range(start_y + step, int(0.92 * h), step):
+                search_xs = range(max(int(0.14 * w), cur_x - 6), min(int(0.55 * w), cur_x + 8))
+                if not search_xs:
+                    break
+                weights = [norm_map[ny, sx] - abs(sx - cur_x) * 2.4 for sx in search_xs]
+                best_x = search_xs[int(np.argmax(weights))]
+                cur_x = best_x
+                life_pts.append([cur_x, ny])
         else:
-            xs_heart = list(range(int(0.15 * w), int(0.76 * w), step))
-            heart_pts = dp_trace_horizontal(xs_heart, int(0.18 * h), int(0.42 * h), penalty=1.6)
+            x_min_l, x_max_l = int(0.72 * w), int(0.82 * w)
+            y_s_min, y_s_max = int(0.36 * h), int(0.48 * h)
+            strip = norm_map[y_s_min:y_s_max, x_min_l:x_max_l]
+            if strip.size > 0 and strip.max() > 18:
+                py, px = np.unravel_index(np.argmax(strip), strip.shape)
+                start_x = x_min_l + px
+                start_y = y_s_min + py
+            else:
+                start_x = int(0.76 * w)
+                start_y = int(0.40 * h)
 
-        # 4. Trace Head Line
-        if thumb_side == "left":
-            xs_head = list(range(int(0.22 * w), int(0.80 * w), step))
-            head_pts = dp_trace_horizontal(xs_head, int(0.35 * h), int(0.65 * h), penalty=1.8)
-        else:
-            xs_head = list(range(int(0.78 * w), int(0.20 * w), -step))
-            head_pts = dp_trace_horizontal(xs_head, int(0.35 * h), int(0.65 * h), penalty=1.8)
+            cur_x, cur_y = start_x, start_y
+            life_pts = [[cur_x, cur_y]]
+            for ny in range(start_y + step, int(0.92 * h), step):
+                search_xs = range(max(int(0.45 * w), cur_x - 8), min(int(0.86 * w), cur_x + 6))
+                if not search_xs:
+                    break
+                weights = [norm_map[ny, sx] - abs(sx - cur_x) * 2.4 for sx in search_xs]
+                best_x = search_xs[int(np.argmax(weights))]
+                cur_x = best_x
+                life_pts.append([cur_x, ny])
 
-        # 5. Trace Life Line (Arc around Mount of Venus)
-        if thumb_side == "left":
-            vx, vy = int(0.25 * w), int(0.72 * h)
-            vr = int(0.18 * w)
-            angles = np.linspace(-np.pi * 0.45, np.pi * 0.40, 36)
-        else:
-            vx, vy = int(0.75 * w), int(0.72 * h)
-            vr = int(0.18 * w)
-            angles = np.linspace(-np.pi * 0.55, -np.pi * 1.40, 36)
-
-        life_pts = []
-        radii = np.linspace(vr * 0.55, vr * 1.55, 26)
-        for theta in angles:
-            best_r = radii[0]
-            best_val = -1.0
-            for r in radii:
-                px = int(vx + r * np.cos(theta))
-                py = int(vy + r * np.sin(theta))
-                if 0 <= px < w and 0 <= py < h:
-                    val = float(norm_map[py, px])
-                    if val > best_val:
-                        best_val = val
-                        best_r = r
-            fx = int(np.clip(vx + best_r * np.cos(theta), 0, w - 1))
-            fy = int(np.clip(vy + best_r * np.sin(theta), 0, h - 1))
-            life_pts.append([fx, fy])
-
-        # 6. Trace Fate Line (Ascending vertical trajectory)
-        ys_fate = list(range(int(0.86 * h), int(0.28 * h), -step))
-        fate_pts = dp_trace_vertical(ys_fate, int(0.40 * w), int(0.60 * w), penalty=2.0)
-
-        # Smooth lines
-        heart_pts = smooth_points(heart_pts, 5)
-        head_pts = smooth_points(head_pts, 5)
+        while len(life_pts) > 25 and norm_map[life_pts[-1][1], life_pts[-1][0]] < 14:
+            life_pts.pop()
         life_pts = smooth_points(life_pts, 5)
+
+        # -------------------------------------------------------------
+        # 4. FATE LINE
+        # -------------------------------------------------------------
+        x_min_f, x_max_f = int(0.40 * w), int(0.60 * w)
+        y_f_min, y_f_max = int(0.78 * h), int(0.92 * h)
+        strip = norm_map[y_f_min:y_f_max, x_min_f:x_max_f]
+        if strip.size > 0 and strip.max() > 18:
+            py, px = np.unravel_index(np.argmax(strip), strip.shape)
+            start_x = x_min_f + px
+            start_y = y_f_min + py
+        else:
+            start_x = int(0.50 * w)
+            start_y = int(0.85 * h)
+
+        cur_x, cur_y = start_x, start_y
+        fate_pts = [[cur_x, cur_y]]
+        for ny in range(start_y - step, int(0.22 * h), -step):
+            search_xs = range(max(x_min_f, cur_x - 5), min(x_max_f, cur_x + 6))
+            if not search_xs:
+                break
+            weights = [norm_map[ny, sx] - abs(sx - cur_x) * 2.8 for sx in search_xs]
+            best_x = search_xs[int(np.argmax(weights))]
+            cur_x = best_x
+            fate_pts.append([cur_x, ny])
+
+        while len(fate_pts) > 25 and norm_map[fate_pts[-1][1], fate_pts[-1][0]] < 14:
+            fate_pts.pop()
         fate_pts = smooth_points(fate_pts, 5)
 
         lines_dict = {

@@ -12,31 +12,31 @@
       ]
     },
     "scores": {
-      "overall_harmony": 59,
-      "vitality": 69,
-      "intellect": 58,
+      "overall_harmony": 56,
+      "vitality": 60,
+      "intellect": 56,
       "heart_harmony": 56,
-      "destiny": 54
+      "destiny": 52
     },
     "lines": {
       "life": {
         "title": "Life Line (Vitality & Life Path)",
-        "score": 69,
-        "curve_pattern": "Wide, sweeping crescent wrapping generously around the Mount of Venus.",
-        "vitality_trait": "Expansive life force, high physical stamina, warmth, and generous hospitality.",
-        "resilience": "Higher nervous and spiritual energy; benefits greatly from meditation, nature grounding, and mindful nutrition.",
-        "journey": "Long, continuous path reflecting a rich, multifaceted life journey filled with diverse chapters.",
-        "clarity": "Delicate / Subtle",
-        "summary": "Expansive life force, high physical stamina, warmth, and generous hospitality. Higher nervous and spiritual energy; benefits greatly from meditation, nature grounding, and mindful nutrition. Long, continuous path reflecting a rich, multifaceted life journey filled with diverse chapters."
+        "score": 60,
+        "curve_pattern": "Direct, disciplined trajectory closer to the thumb.",
+        "vitality_trait": "Refined energy conservation, thoughtful physical boundaries, and selective investment of personal stamina.",
+        "resilience": "Reliable health resilience supported by regular rhythms and positive lifestyle habits.",
+        "journey": "Focused trajectory indicating high intentionality and decisive milestones.",
+        "clarity": "Clear & Well-Defined",
+        "summary": "Refined energy conservation, thoughtful physical boundaries, and selective investment of personal stamina. Reliable health resilience supported by regular rhythms and positive lifestyle habits. Focused trajectory indicating high intentionality and decisive milestones."
       },
       "head": {
         "title": "Head Line (Wisdom & Mental Faculties)",
-        "score": 58,
+        "score": 56,
         "slope_pattern": "Traverses straight across the palm toward the Mount of Mars.",
         "intellect_style": "Sharp analytical mindset grounded in logic, realism, empirical evidence, and pragmatic execution.",
         "focus_level": "Agile, nimble thought process with curiosity spanning many simultaneous interests.",
         "career_aptitude": "Technology, engineering, quantitative research, executive management, and structured systems.",
-        "clarity": "Moderate",
+        "clarity": "Clear & Well-Defined",
         "summary": "Sharp analytical mindset grounded in logic, realism, empirical evidence, and pragmatic execution. Agile, nimble thought process with curiosity spanning many simultaneous interests. Best suited for environments requiring technology, engineering, quantitative research, executive management, and structured systems.."
       },
       "heart": {
@@ -45,12 +45,12 @@
         "curve_pattern": "Direct, steady horizontal line.",
         "romantic_style": "Pragmatic and composed in affections. Expresses love through tangible dedication, loyalty, and steadfast acts of service.",
         "empathy_type": "Stoic resilience; handles interpersonal challenges with serene composure.",
-        "clarity": "Moderate",
+        "clarity": "Clear & Well-Defined",
         "summary": "Pragmatic and composed in affections. Expresses love through tangible dedication, loyalty, and steadfast acts of service. Stoic resilience; handles interpersonal challenges with serene composure."
       },
       "fate": {
         "title": "Fate Line (Destiny & Career Alignment)",
-        "score": 54,
+        "score": 52,
         "presence": "Emergent, flexible path adapting gracefully to evolving ambitions.",
         "destiny_style": "Dynamic career journey characterized by self-reinvention, expanding horizons, and timely opportunities.",
         "vocation": "Multidisciplinary career, collaborative ventures, creative independence.",
@@ -108,22 +108,22 @@
   "line_metrics": {
     "Heart": {
       "metrics": {
-        "length": 313.2,
-        "normalized_length": 68.0,
-        "curvature": 1.03,
-        "depth_score": 37,
-        "clarity": "Moderate",
-        "angle": -179.2,
+        "length": 229.4,
+        "normalized_length": 49.8,
+        "curvature": 1.07,
+        "depth_score": 48,
+        "clarity": "Clear & Well-Defined",
+        "angle": 175.2,
         "start_point": [
-          431,
-          180
+          356,
+          166
         ],
         "end_point": [
-          127,
-          176
+          142,
+          184
         ]
       },
-      "points_count": 79,
+      "points_count": 110,
       "color_bgr": [
         230,
         40,
@@ -132,22 +132,22 @@
     },
     "Head": {
       "metrics": {
-        "length": 294.5,
-        "normalized_length": 63.9,
-        "curvature": 1.01,
-        "depth_score": 40,
-        "clarity": "Moderate",
-        "angle": 9.3,
+        "length": 228.0,
+        "normalized_length": 49.5,
+        "curvature": 1.02,
+        "depth_score": 48,
+        "clarity": "Clear & Well-Defined",
+        "angle": 8.8,
         "start_point": [
-          116,
-          211
+          161,
+          222
         ],
         "end_point": [
-          404,
-          258
+          381,
+          256
         ]
       },
-      "points_count": 75,
+      "points_count": 113,
       "color_bgr": [
         50,
         160,
@@ -156,22 +156,22 @@
     },
     "Life": {
       "metrics": {
-        "length": 437.8,
-        "normalized_length": 95.0,
-        "curvature": 1.97,
-        "depth_score": 14,
-        "clarity": "Delicate / Subtle",
-        "angle": 90.8,
+        "length": 275.0,
+        "normalized_length": 59.7,
+        "curvature": 1.04,
+        "depth_score": 49,
+        "clarity": "Clear & Well-Defined",
+        "angle": 62.1,
         "start_point": [
-          162,
-          222
+          136,
+          230
         ],
         "end_point": [
-          159,
-          444
+          260,
+          464
         ]
       },
-      "points_count": 36,
+      "points_count": 120,
       "color_bgr": [
         40,
         210,
@@ -180,22 +180,22 @@
     },
     "Fate": {
       "metrics": {
-        "length": 290.7,
-        "normalized_length": 63.1,
-        "curvature": 1.01,
-        "depth_score": 53,
+        "length": 295.2,
+        "normalized_length": 64.1,
+        "curvature": 1.03,
+        "depth_score": 49,
         "clarity": "Clear & Well-Defined",
-        "angle": -94.4,
+        "angle": -93.4,
         "start_point": [
-          261,
-          436
+          259,
+          402
         ],
         "end_point": [
-          239,
-          148
+          242,
+          116
         ]
       },
-      "points_count": 75,
+      "points_count": 146,
       "color_bgr": [
         240,
         190,
