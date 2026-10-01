@@ -40,7 +40,7 @@ class PalmistryEngine:
 
         # Longevity / Transitions
         if norm_len >= 75:
-            journey_desc = "Long, continuous path reflecting a rich, multifaceted life journey filled with diverse chapters."
+            journey_desc = "Log, continuous path reflecting a rich, multifaceted life journey filled with diverse chapters."
         else:
             journey_desc = "Focused trajectory indicating high intentionality and decisive milestones."
 
